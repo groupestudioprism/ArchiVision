@@ -1,0 +1,112 @@
+/* ===== Compte Studio Prism : connexion, fiche client, code PIN — écran volontairement clair, comme le logo ===== */
+#auth[hidden]{display:none!important}
+#auth{position:fixed;inset:0;z-index:55;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);background:#FFFFFF;color:#0F1B33;color-scheme:light;font-family:var(--f-body);overflow:auto}
+.ap-side{position:relative;display:flex;flex-direction:column;gap:32px;padding:48px clamp(24px,5vw,72px);background-color:#F9FAFA;background-image:linear-gradient(#0A5E8E14 1px,transparent 1px),linear-gradient(90deg,#0A5E8E14 1px,transparent 1px),linear-gradient(#0A5E8E09 1px,transparent 1px),linear-gradient(90deg,#0A5E8E09 1px,transparent 1px);background-size:120px 120px,120px 120px,24px 24px,24px 24px;border-right:1px solid #DDE5EA}
+.ap-logo{width:min(440px,100%);aspect-ratio:1514/437;background:var(--logo) 0 0/100% 100% no-repeat;flex:none}
+.ap-pitch{max-width:44ch}
+.ap-eyebrow{margin:0 0 10px;font:600 11px/1 var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:#03858D}
+.ap-pitch h1{margin:0 0 12px;font:800 clamp(24px,2.6vw,32px)/1.15 "Montserrat",var(--f-display);color:#071A45;text-wrap:balance}
+.ap-pitch p{margin:0;font-size:15px;line-height:1.6;color:#3C4863}
+.ap-apps{list-style:none;margin:0;padding:0;display:grid;border-top:1px solid #DDE5EA;max-width:460px}
+.ap-apps li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;padding:12px 0;border-bottom:1px solid #DDE5EA}
+.ap-apps b{font:700 14px "Montserrat",var(--f-display);color:#071A45}
+.ap-apps span{grid-column:1;font-size:13px;color:#56637C}
+.ap-apps em{grid-row:1 / span 2;grid-column:2;align-self:center;font:500 11px var(--f-mono);font-style:normal;color:#03858D;border:1px solid #9FD6DA;border-radius:999px;padding:3px 9px;white-space:nowrap}
+.ap-apps li:nth-child(n+3) em{color:#56637C;border-color:#CBD6DF}
+.ap-foot{margin:auto 0 0;font-size:12px;color:#7A8499}
+.ap-main{display:grid;place-items:center;padding:40px 24px}
+.ap-card{width:min(400px,100%);display:flex;flex-direction:column;gap:18px}
+.ap-card h2{margin:0;font:800 24px/1.2 "Montserrat",var(--f-display);color:#071A45;text-wrap:balance}
+.ap-sub{margin:-8px 0 0;font-size:14px;line-height:1.55;color:#4A5570}
+.ap-tabs{display:grid;grid-template-columns:1fr 1fr;background:#F0F4F7;border-radius:12px;padding:4px}
+.ap-tabs button{border:0;background:transparent;border-radius:9px;height:38px;font-weight:600;font-size:14px;color:#4A5570}
+.ap-tabs button[aria-selected="true"]{background:#fff;color:#071A45;box-shadow:0 1px 3px rgb(7 26 69 / .12)}
+.ap-form{display:flex;flex-direction:column;gap:14px}
+.ap-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ap-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.ap-field > span:first-child{font-size:13px;font-weight:600;color:#26324D}
+.ap-field small{font-weight:400;color:#7A8499}
+.ap-in{position:relative;display:flex}
+.ap-in input,.ap-in select{width:100%;min-width:0;height:46px;border:1px solid #CBD6DF;border-radius:10px;padding:0 14px;font-size:15px;background:#fff;color:#0F1B33;font-family:var(--f-body)}
+.ap-in input[type="password"],.ap-in input.pw{padding-right:84px}
+.ap-in input:focus,.ap-in select:focus{outline:none;border-color:#0A5E8E;box-shadow:0 0 0 3px #0A5E8E26}
+.ap-in input[readonly]{background:#F5F7F9;color:#4A5570}
+.ap-eye{position:absolute;right:6px;top:6px;height:34px;padding:0 10px;border:0;background:transparent;color:#4A5570;font-size:12px;font-weight:600;border-radius:7px}
+.ap-eye:hover{background:#F0F4F7}
+.ap-rules{display:flex;flex-wrap:wrap;gap:6px 14px;margin:-6px 0 0;padding:0;list-style:none;font-size:12px;color:#7A8499}
+.ap-rules li::before{content:"○ "}
+.ap-rules li.ok{color:#047A63}.ap-rules li.ok::before{content:"● "}
+.ap-row{display:flex;justify-content:flex-end;align-items:center;gap:12px;margin-top:-4px}
+.ap-check{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.45;color:#3C4863}
+.ap-check input{margin-top:2px;width:16px;height:16px;accent-color:#0A5E8E;flex:none}
+.ap-btn{height:48px;border-radius:10px;border:1px solid #071A45;background:#071A45;color:#fff;font-weight:600;font-size:15px;width:100%;display:inline-flex;align-items:center;justify-content:center;gap:10px}
+.ap-btn:hover{background:#0B2A63}
+.ap-btn.alt{background:#fff;color:#071A45;border-color:#CBD6DF}.ap-btn.alt:hover{border-color:#0A5E8E;background:#fff}
+.ap-btn[disabled]{opacity:.6;cursor:progress}
+.ap-link{border:0;background:none;padding:0;color:#0A5E8E;font-weight:600;font-size:13.5px;text-align:left}
+.ap-link:hover{text-decoration:underline}
+.ap-links{display:flex;justify-content:center;gap:22px;flex-wrap:wrap}
+.ap-err{margin:0;color:#B4372C;font-size:13px;line-height:1.45}
+.ap-err:empty{display:none}
+.ap-note{margin:0;border-radius:10px;padding:12px 14px;font-size:13.5px;line-height:1.5;background:#EEF7F8;border:1px solid #CBE6E9;color:#164A55}
+.ap-note.ok{background:#EDF8F3;border-color:#C6E8D9;color:#145A43}
+.ap-note.warn{background:#FFF6EB;border-color:#F3D9B5;color:#7A4A10}
+.ap-or{display:flex;align-items:center;gap:12px;font-size:12px;color:#7A8499}
+.ap-or::before,.ap-or::after{content:"";flex:1;border-top:1px solid #DDE5EA}
+.ap-mode{margin:4px 0 0;font:11.5px/1.5 var(--f-mono);color:#7A8499;text-align:center}
+.ap-list{margin:0;padding:0;list-style:none;display:grid;gap:10px;font-size:14px;color:#3C4863}
+.ap-list li{display:grid;grid-template-columns:20px 1fr;gap:10px;line-height:1.45}
+.ap-list li::before{content:"";width:7px;height:7px;margin:6px 0 0 4px;border:2px solid #03A2AC;transform:rotate(45deg)}
+/* étapes de l'inscription, dessinées comme une ligne de cote */
+.ap-steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);position:relative}
+.ap-steps::before{content:"";position:absolute;left:12px;right:12px;top:11px;border-top:1px solid #9AABBC}
+.ap-steps li{position:relative;display:flex;flex-direction:column;align-items:center;gap:7px;font:500 10.5px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:#7A8499}
+.ap-steps li:first-child{align-items:flex-start}.ap-steps li:last-child{align-items:flex-end}
+.ap-steps i{display:grid;place-items:center;width:22px;height:22px;background:#fff;border:1px solid #9AABBC;transform:rotate(45deg);font-style:normal}
+.ap-steps i b{transform:rotate(-45deg);font-size:10.5px;font-weight:600}
+.ap-steps li.cur{color:#071A45}.ap-steps li.cur i{border-color:#03A2AC;background:#03A2AC;color:#fff}
+.ap-steps li.done{color:#0A5E8E}.ap-steps li.done i{border-color:#0A5E8E;background:#0A5E8E;color:#fff}
+/* code PIN */
+.ap-center{text-align:center;display:grid;gap:10px;justify-items:center}
+.ap-center .ap-sub{margin:0}
+.ap-avatar{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;background:#071A45;color:#fff;font:700 22px "Montserrat",var(--f-display)}
+.ap-dots{display:flex;justify-content:center;gap:14px;margin:4px 0}
+.ap-dots i{width:14px;height:14px;border-radius:50%;border:1.5px solid #9AABBC;transition:background .12s,border-color .12s}
+.ap-dots i.on{background:#071A45;border-color:#071A45}
+.ap-dots.shake{animation:ap-shake .38s}
+.ap-pin-err{text-align:center}
+.ap-pad{display:grid;grid-template-columns:repeat(3,72px);gap:14px 22px;justify-content:center}
+.ap-pad button{width:72px;height:72px;border-radius:50%;border:1px solid #DDE5EA;background:#F7F9FB;color:#071A45;font:600 24px "Montserrat",var(--f-display)}
+.ap-pad button:hover{background:#EEF3F7}
+.ap-pad button:active{background:#071A45;color:#fff}
+.ap-pad button[data-k="del"]{font-size:20px;border-color:transparent;background:transparent}
+@keyframes ap-shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.ap-spin{width:28px;height:28px;border-radius:50%;border:3px solid #DDE5EA;border-top-color:#0A5E8E;animation:ap-rot .8s linear infinite}
+@keyframes ap-rot{to{transform:rotate(360deg)}}
+.ap-mail{border:1px solid #DDE5EA;border-radius:12px;overflow:hidden;font-size:13.5px}
+.ap-mail header{background:#F5F7F9;padding:10px 14px;border-bottom:1px solid #DDE5EA;font-size:12px;color:#4A5570;line-height:1.6}
+.ap-mail div{padding:14px;line-height:1.55;color:#26324D}
+.ap-mail .code{display:block;margin:8px 0;font:700 26px var(--f-mono);letter-spacing:.3em;color:#071A45}
+.ap-sec{display:grid;border-top:1px solid #DDE5EA}
+.ap-sec > div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:14px 0;border-bottom:1px solid #DDE5EA}
+.ap-sec b{font-size:14px;color:#071A45}
+.ap-sec p{margin:0;grid-column:1;font-size:13px;line-height:1.45;color:#56637C}
+.ap-sec .acts2{grid-row:1 / span 2;grid-column:2;display:flex;gap:6px}
+.ap-chip-btn{height:34px;padding:0 12px;border-radius:8px;border:1px solid #CBD6DF;background:#fff;color:#071A45;font-weight:600;font-size:13px}
+.ap-chip-btn:hover{border-color:#0A5E8E}
+.ap-chip-btn.danger{color:#B4372C}
+#auth :focus-visible{outline:2px solid #0A5E8E;outline-offset:2px}
+@media (max-width:860px){
+  #auth{grid-template-columns:minmax(0,1fr);align-content:start}
+  .ap-side{padding:28px 20px 0;border-right:0;background-image:none;background-color:#fff;align-items:center;gap:0}
+  .ap-logo{width:min(300px,82%)}
+  .ap-pitch,.ap-apps,.ap-foot{display:none}
+  .ap-main{place-items:start center;padding:20px 20px calc(32px + env(safe-area-inset-bottom,0px))}
+  .ap-pad{grid-template-columns:repeat(3,68px);gap:12px 20px}.ap-pad button{width:68px;height:68px}
+}
+@media (max-width:380px){.ap-grid2{grid-template-columns:1fr}}
+@media (prefers-reduced-motion: reduce){.ap-dots.shake,.ap-spin{animation:none}}
+/* bouton et menu du compte dans l'app */
+.ap-key{margin:4px 0 14px;border:1px solid #DDE5EA;border-radius:10px;padding:10px 12px}
+.ap-key summary{cursor:pointer;font-weight:600;font-size:14px;color:#071A45}
+.ap-key form{margin-top:10px}

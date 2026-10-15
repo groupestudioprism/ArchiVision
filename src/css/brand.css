@@ -1,0 +1,39 @@
+/* ===== ARCHIVISION — direction artistique du logo : bleu nuit (architecture) → bleu pétrole → turquoise (réalité augmentée) =====
+   Se superpose à la charte Studio Prism d'ARCHIPLAN / ARCHITRAFIC (app.css, auth.css, home.css). Thème clair par défaut, thème sombre au choix. */
+:root{
+  --nuit:#0B1F45; --marine:#14365F; --prism:#1F5A86; --petrole:#2A7C93; --turq:#3AA393; --cyan:#2A7C93;
+  --accent:#1F5A86; --accent-2:#2A9D8F; --accent-soft:#E6F0F6; --sel:#2A9D8F; --ok:#1E8E5A; --warn:#B7791F; --danger:#C62828;
+  --bg:#F3F6F9; --line:#DCE5EC; --chip:#EDF3F7;
+  --grad:linear-gradient(120deg,#0B1F45 0%,#14365F 35%,#1F5A86 60%,#2A7C93 80%,#3AA393 100%);
+  --grad-t:linear-gradient(90deg,#1F5A86,#2A7C93 55%,#3AA393);
+  --hl:#2FD3B4;
+  --logo:url("assets/logo-wide.webp");
+}
+:root[data-theme="dark"]{
+  --bg:#0E131A; --panel:#161C25; --ink:#E8EDF3; --mut:#9DA9B8; --line:#263140; --chip:#1E2733;
+  --accent:#6FB2E2; --accent-2:#4CC9B5; --accent-soft:#18303F; --sel:#4CC9B5; --vp:#11161E; --grid-major:#2A3443; --grid-minor:#1B222D; --edge:#0A0D12;
+}
+.brand b .plan{background:var(--grad-t);-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand b{color:#0B1F45}
+:root[data-theme="dark"] .brand b{color:#D3E2F3}
+:root[data-theme="dark"] .brand b .plan{background:linear-gradient(90deg,#6FB2E2,#4CC9B5);-webkit-background-clip:text;background-clip:text}
+.brand-mark{background:#FFFFFF;border-color:var(--line)}
+.brand-mark img{width:30px;height:auto}
+:root[data-theme="dark"] .brand-mark{background:#F4F7FB}
+.tool[aria-pressed="true"]{color:var(--accent);background:var(--accent-soft)}
+.tag{color:#1F6E73;background:color-mix(in srgb,var(--turq) 14%,transparent)}
+:root[data-theme="dark"] .tag{color:#7FE0CF}
+
+/* compte : logo complet ARCHIVISION */
+.ap-logo{aspect-ratio:1125/335;background:var(--logo) 0 0/100% 100% no-repeat}
+.ap-side{background-color:#FAFBFC}
+.ap-apps em{color:#1F6E73;border-color:#A9DDD3}
+.ap-steps li.cur i{border-color:var(--turq);background:var(--turq)}
+.ap-btn{background:#0B1F45;border-color:#0B1F45}.ap-btn:hover{background:#14365F}
+#home .ap-btn,#apDlg .ap-btn{background:#14365F;border-color:#14365F}
+#home .ap-btn:hover,#apDlg .ap-btn:hover{background:#1F5A86}
+#home .ap-btn.alt,#apDlg .ap-btn.alt{background:var(--panel);color:var(--ink);border-color:var(--line)}
+#apDlg .ap-btn.danger{background:var(--danger);border-color:var(--danger)}
+.hq.primary{background:var(--grad)!important;border-color:transparent!important}
+.q-plan{color:#1F6E73}
+.ap-spin{border-top-color:var(--turq)!important}

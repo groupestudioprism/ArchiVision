@@ -1,0 +1,147 @@
+#!/usr/bin/env python3
+"""Test de bout en bout d'ARCHIVISION (démo autonome, Chromium sans interface, WebGL logiciel).
+Usage : python3 -m http.server 8810 (à la racine du dépôt), puis python3 tests/e2e.py [dossier des captures]"""
+import asyncio, sys, os, json
+from playwright.async_api import async_playwright
+URL = 'http://localhost:8810/dist/archivision-demo.html'
+OUT = sys.argv[1] if len(sys.argv) > 1 else '/tmp/av-shots'
+SAMPLES = os.environ.get('AV_SAMPLES', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fixtures'))
+os.makedirs(OUT, exist_ok=True)
+fails = []
+def check(cond, msg):
+    print(('OK  ' if cond else 'ÉCHEC ') + msg)
+    if not cond: fails.append(msg)
+async def signup(pg, email='test@studioprism.fr'):
+    await pg.wait_for_selector('#splash', state='detached', timeout=20000)   # fin de l'intro animée
+    await pg.click('text=Créer un compte')
+    await pg.fill('#ap-first', 'Kéliann'); await pg.fill('#ap-last', 'Test')
+    await pg.fill('#ap-email', email); await pg.fill('#ap-pw', 'Prism-Test-2026x'); await pg.fill('#ap-pw2', 'Prism-Test-2026x')
+    await pg.check('#ap-cgu'); await pg.click('#apForm button[type=submit]')
+    try: await pg.wait_for_selector('#ap-phone', timeout=20000)
+    except Exception:
+        await pg.screenshot(path=f'{OUT}/echec_inscription.png'); print('CARTE :', (await pg.inner_text('#apCard'))[:400]); raise
+    await pg.fill('#ap-phone', '0600000000'); await pg.click('#apForm button[type=submit]')
+    await pg.wait_for_selector('#apSkip', timeout=8000); await pg.click('#apSkip')
+async def main():
+    async with async_playwright() as p:
+        b = await p.chromium.launch(args=['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist'])
+        ctx = await b.new_context(viewport={'width':1440, 'height':860}, accept_downloads=True)
+        pg = await ctx.new_page(); errs = []
+        pg.on('pageerror', lambda e: errs.append('PAGE ' + str(e)))
+        pg.on('console', lambda m: errs.append('CONSOLE ' + m.text[:300]) if m.type == 'error' else None)
+        await pg.goto(URL); await pg.wait_for_selector('#ap-email', timeout=25000)
+        await pg.wait_for_function('window.__apReady === true', timeout=25000)
+        await pg.screenshot(path=f'{OUT}/01_connexion.png')
+        await signup(pg); await pg.wait_for_selector('#home:not([hidden])', timeout=10000); await pg.wait_for_timeout(1500)
+        await pg.screenshot(path=f'{OUT}/02_accueil_vide.png')
+        check('Aucune maquette trouvée' in await pg.inner_text('#homeBody'), 'accueil vide')
+        # exemple
+        await pg.click('#homeSample'); await pg.wait_for_selector('#home', state='hidden', timeout=15000); await pg.wait_for_timeout(1500)
+        st = await pg.evaluate('AVApp.state()'); print(st)
+        check(st['meshes'] > 20, 'maquette d\'exemple chargée')
+        await pg.screenshot(path=f'{OUT}/03_exemple_visite.png')
+        check('Maison' in await pg.inner_text('#pbody'), 'hiérarchie affichée')
+        # sélection au centre de la vue
+        box = await pg.locator('#c').bounding_box()
+        await pg.mouse.click(box['x'] + box['width'] * 0.5, box['y'] + box['height'] * 0.55); await pg.wait_for_timeout(500)
+        st = await pg.evaluate('AVApp.state()'); print('sélection :', st['sel'])
+        await pg.click('.tabs [data-tab="props"]'); await pg.wait_for_timeout(300)
+        await pg.screenshot(path=f'{OUT}/04_donnees_exemple.png')
+        check(st['sel'] is not None, 'clic sur un élément → sélection')
+        # styles, outils
+        for s in ('xray', 'wire', 'shaded', 'mat'):
+            await pg.click(f'#styleGrp [data-style="{s}"]'); await pg.wait_for_timeout(250)
+            if s == 'xray': await pg.screenshot(path=f'{OUT}/05_rayons_x.png')
+        await pg.click('.tools [data-tool="walk"]'); await pg.wait_for_timeout(400)
+        await pg.keyboard.down('ArrowUp'); await pg.wait_for_timeout(900); await pg.keyboard.up('ArrowUp')
+        await pg.screenshot(path=f'{OUT}/06_marche.png')
+        cam = await pg.evaluate('AVDebug.camera.position.toArray()'); check(1.0 < cam[1] < 2.6, f'marche à hauteur d\'yeux ({cam[1]:.2f} m)')
+        await pg.click('.tools [data-tool="pano"]'); await pg.wait_for_timeout(300)
+        await pg.mouse.move(box['x'] + 600, box['y'] + 300); await pg.mouse.down(); await pg.mouse.move(box['x'] + 400, box['y'] + 320, steps=6); await pg.mouse.up()
+        await pg.screenshot(path=f'{OUT}/07_immersion_360.png')
+        await pg.click('.tools [data-tool="orbit"]'); await pg.click('.cams [data-cam="fit"]'); await pg.wait_for_timeout(700)
+        await pg.click('.tools [data-tool="measure"]')
+        await pg.mouse.click(box['x'] + box['width'] * 0.40, box['y'] + box['height'] * 0.6); await pg.wait_for_timeout(200)
+        await pg.mouse.click(box['x'] + box['width'] * 0.60, box['y'] + box['height'] * 0.6); await pg.wait_for_timeout(400)
+        n = await pg.evaluate('AVDebug.measures.length'); check(n == 1, 'mesure entre deux points')
+        await pg.screenshot(path=f'{OUT}/08_mesure.png')
+        await pg.keyboard.press('Escape')
+        await pg.click('.tools [data-tool="section"]'); await pg.wait_for_timeout(500)
+        await pg.screenshot(path=f'{OUT}/09_coupe.png')
+        check(await pg.evaluate('AVDebug.V && document.querySelector("#secBar").hidden === false'), 'barre de coupe')
+        await pg.click('#secOff'); await pg.wait_for_timeout(200)
+        # capture → galerie
+        await pg.click('#capBtn'); await pg.wait_for_timeout(1500)
+        await pg.click('.tabs [data-tab="gallery"]'); await pg.wait_for_timeout(800)
+        check(await pg.locator('#pgrid .pthumb').count() == 1, 'capture enregistrée dans la galerie')
+        await pg.click('#pgrid .pthumb'); await pg.wait_for_selector('#photoDlg:not([hidden])')
+        await pg.fill('#phNote', 'Réserve : vérifier l\'appui de la baie.'); await pg.click('[data-ph="save"]'); await pg.wait_for_timeout(400)
+        await pg.screenshot(path=f'{OUT}/10_photo_annotee.png')
+        await pg.click('[data-ph="close"]')
+        # AR : pas de WebXR dans Chromium sans interface → fenêtre d'aide
+        await pg.click('#arBtn'); await pg.wait_for_timeout(500)
+        txt = await pg.inner_text('#apDlg'); check('Réalité augmentée' in txt, 'AR indisponible → explications'); await pg.screenshot(path=f'{OUT}/11_ar_aide.png')
+        await pg.click('#apDlg [data-dlg="close"]')
+        # import GLB d'ARCHIPLAN, puis IFC
+        await pg.click('#homeBtn'); await pg.wait_for_selector('#home:not([hidden])')
+        glb = [f for f in os.listdir(SAMPLES) if f.endswith('.glb')][0]; ifc = [f for f in os.listdir(SAMPLES) if f.endswith('.ifc')][0]
+        await pg.set_input_files('#homeFile', f'{SAMPLES}/{glb}'); await pg.wait_for_selector('#home', state='hidden', timeout=60000); await pg.wait_for_timeout(1500)
+        st = await pg.evaluate('AVApp.state()'); print('GLB :', st); check(st['meshes'] > 10, 'import GLB ARCHIPLAN')
+        await pg.screenshot(path=f'{OUT}/12_glb_archiplan.png')
+        await pg.click('.tabs [data-tab="tree"]'); await pg.wait_for_timeout(300)
+        # premier mur de la hiérarchie
+        await pg.fill('#treeQ', 'Mur'); await pg.wait_for_timeout(400)
+        rows = pg.locator('.tr .tl', has_text='Mur')
+        if await rows.count(): await rows.first.click(); await pg.wait_for_timeout(300)
+        await pg.click('.tabs [data-tab="props"]'); await pg.wait_for_timeout(300)
+        pt = await pg.inner_text('#pbody'); print(pt[:500]); check('Composition' in pt or 'ARCHIPLAN' in pt, 'données ARCHIPLAN lues dans le GLB')
+        await pg.screenshot(path=f'{OUT}/13_glb_donnees.png')
+        await pg.click('#homeBtn'); await pg.wait_for_selector('#home:not([hidden])')
+        await pg.set_input_files('#homeFile', f'{SAMPLES}/{ifc}'); await pg.wait_for_selector('#home', state='hidden', timeout=120000); await pg.wait_for_timeout(1500)
+        st = await pg.evaluate('AVApp.state()'); print('IFC :', st); check(st['meshes'] > 10, 'import IFC (web-ifc)')
+        await pg.click('.tabs [data-tab="tree"]'); await pg.wait_for_timeout(300)
+        await pg.screenshot(path=f'{OUT}/14_ifc_hierarchie.png')
+        await pg.fill('#treeQ', 'Mur'); await pg.wait_for_timeout(400)
+        rows = pg.locator('.tr .tl', has_text='Mur')
+        if await rows.count(): await rows.first.click(); await pg.wait_for_timeout(300)
+        await pg.click('.tabs [data-tab="props"]'); await pg.wait_for_timeout(300)
+        pt = await pg.inner_text('#pbody'); print(pt[:600]); check('Classe IFC' in pt, 'données IFC de l\'élément')
+        await pg.screenshot(path=f'{OUT}/15_ifc_donnees.png')
+        # accueil avec 2 maquettes + galerie
+        await pg.click('#homeBtn'); await pg.wait_for_timeout(1200)
+        check(await pg.locator('#homeBody .hcard').count() == 2, 'deux maquettes dans l\'accueil')
+        await pg.screenshot(path=f'{OUT}/16_accueil.png')
+        await pg.click('#homeTabs [data-htab="gallery"]'); await pg.wait_for_timeout(500)
+        await pg.screenshot(path=f'{OUT}/17_galerie.png')
+        # réouverture de l'IFC (depuis le GLB converti)
+        await pg.click('#homeTabs [data-htab="mine"]'); await pg.wait_for_timeout(300)
+        await pg.click('#homeBody .hcard >> nth=0'); await pg.wait_for_selector('#home', state='hidden', timeout=30000); await pg.wait_for_timeout(800)
+        await pg.click('.tabs [data-tab="tree"]'); await pg.fill('#treeQ', 'Mur'); await pg.wait_for_timeout(300)
+        rows = pg.locator('.tr .tl', has_text='Mur')
+        if await rows.count(): await rows.first.click()
+        await pg.click('.tabs [data-tab="props"]'); await pg.wait_for_timeout(300)
+        check('Classe IFC' in await pg.inner_text('#pbody'), 'données IFC conservées après réouverture')
+        # thème sombre
+        await pg.evaluate("document.documentElement.dataset.theme='dark'"); await pg.wait_for_timeout(400)
+        await pg.screenshot(path=f'{OUT}/18_sombre.png')
+        await pg.evaluate("document.documentElement.dataset.theme='light'")
+        # téléphone
+        m = await b.new_context(viewport={'width':390, 'height':844}, device_scale_factor=2, is_mobile=True, has_touch=True)
+        pm = await m.new_page(); pm.on('pageerror', lambda e: errs.append('MOBILE ' + str(e)))
+        await pm.goto(URL); await pm.wait_for_selector('#ap-email', timeout=25000); await pm.wait_for_timeout(3500)
+        await pm.screenshot(path=f'{OUT}/20_mobile_connexion.png')
+        await signup(pm, 'mobile@studioprism.fr'); await pm.wait_for_timeout(1500)
+        await pm.screenshot(path=f'{OUT}/21_mobile_accueil.png')
+        await pm.click('#homeSample'); await pm.wait_for_timeout(2500)
+        await pm.screenshot(path=f'{OUT}/22_mobile_visite.png')
+        await pm.click('#panelBtn'); await pm.wait_for_timeout(500); await pm.screenshot(path=f'{OUT}/23_mobile_panneau.png')
+        await pm.locator('#scrim').click(position={'x':20,'y':120}); await pm.wait_for_timeout(300); await pm.click('.tools [data-tool="walk"]'); await pm.wait_for_timeout(500)
+        await pm.screenshot(path=f'{OUT}/24_mobile_marche.png')
+        # interface AR (affichée sans session, pour la mise en page)
+        await pm.evaluate("document.querySelector('#arUi').hidden=false"); await pm.wait_for_timeout(200)
+        await pm.screenshot(path=f'{OUT}/25_mobile_interface_ar.png')
+        print('\n'.join(set(errs)) or 'aucune erreur JavaScript')
+        check(not [e for e in errs if e.startswith(('PAGE', 'MOBILE'))], 'aucune exception JavaScript')
+        await b.close()
+    print(f'\n{len(fails)} échec(s)'); sys.exit(1 if fails else 0)
+asyncio.run(main())

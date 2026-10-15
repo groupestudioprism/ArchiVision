@@ -1,0 +1,160 @@
+
+<div id="splash" role="status" aria-live="polite">
+  <div class="sp-stage" role="img" aria-label="ARCHIVISION, architecture en réalité augmentée">
+    <div class="sp-grid"></div>
+    <img class="sp-mark" src="assets/emblem-320.webp" alt="" width="320" height="268">
+    <div class="sp-word"><b>ARCHI</b><b class="t">VISION</b></div>
+    <p class="sp-tag">Architecture en réalité augmentée</p>
+    <div class="sp-road" aria-hidden="true"><i></i></div>
+  </div>
+  <p class="sp-msg" id="spMsg">Ouverture des maquettes…</p>
+</div>
+<div id="auth" hidden>
+  <aside class="ap-side">
+    <div class="ap-logo" role="img" aria-label="ARCHIVISION, architecture en réalité augmentée"></div>
+    <div class="ap-pitch"><p class="ap-eyebrow">Compte Studio Prism</p><h1>Un seul compte pour toutes les apps du studio.</h1><p>Connectez-vous une fois : votre fiche client et vos réglages vous suivent d'ARCHIVISION à ARCHIPLAN et ARCHITRAFIC.</p></div>
+    <ul class="ap-apps">
+      <li><b>ARCHIVISION</b><span>Maquettes BIM en réalité augmentée</span><em>Vous êtes ici</em></li>
+      <li><b>ARCHIPLAN</b><span>Conception de plans et modélisation 3D</span><em>Même compte</em></li>
+      <li><b>ARCHITRAFIC</b><span>Trafic, déviations et gestion de chantier</span><em>Même compte</em></li>
+    </ul>
+    <p class="ap-foot">Studio Prism · Creative &amp; Technical Solutions</p>
+  </aside>
+  <main class="ap-main"><div class="ap-card" id="apCard" aria-live="polite"></div></main>
+</div>
+<script>setTimeout(function(){if(!window.__apReady){var m=document.getElementById('spMsg');if(m){m.textContent="Le moteur 3D n'a pas pu se charger. Vérifiez la connexion, puis rechargez la page.";m.classList.add('err');}}},15000);</script>
+
+<div id="app">
+  <header class="top">
+    <button class="ib ghost" id="homeBtn" title="Accueil · mes maquettes" aria-label="Accueil, mes maquettes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7M5 10v10h5v-6h4v6h5V10"/></svg></button>
+    <div class="brand"><span class="brand-mark"><img src="assets/emblem-64.webp" alt="" width="30" height="25"></span>
+      <div><b>ARCHI<span class="plan">VISION</span></b><small id="projName">Studio Prism · Prism App</small></div></div>
+    <nav class="modes" aria-label="Mode de visite"><button data-mode="tour" aria-pressed="true">Visite 3D</button><button data-mode="ar" aria-pressed="false"><span class="m-long">Réalité augmentée</span><span class="m-short">AR</span></button></nav>
+    <div class="acts">
+      <button class="ib" id="capBtn" title="Capture (C)" aria-label="Capture"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
+      <button class="ib" id="fileBtn" aria-haspopup="true">Fichier</button>
+      <button class="ib primary" id="arBtn" title="Voir la maquette en réalité augmentée"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3"/><path d="M12 7l4.5 2.5v5L12 17l-4.5-2.5v-5z"/><path d="M7.5 9.5L12 12l4.5-2.5M12 12v5"/></svg><span>Voir en AR</span></button>
+      <button id="licBadge" type="button" hidden title="Licence ARCHIVISION">Découverte</button>
+      <button class="ib" id="userBtn" hidden aria-haspopup="true" aria-label="Mon compte"></button>
+      <button class="ib" id="panelBtn" aria-label="Ouvrir le panneau"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM14 5v14"/></svg></button>
+    </div>
+  </header>
+  <nav class="tools" role="toolbar" aria-label="Outils de visite">
+    <button class="tool" data-tool="orbit" aria-pressed="true" title="Orbite (O)"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="12" rx="9" ry="4"/><path d="M12 3a9 9 0 0 1 0 18" opacity=".55"/><circle cx="12" cy="12" r="1.6"/></svg><span>Orbite</span><kbd>O</kbd></button>
+    <button class="tool" data-tool="walk" aria-pressed="false" title="Marche (W)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="13" cy="4.5" r="1.8"/><path d="M10 21l2-6 3 3v3M9 11l3-3 3 2 2 3M12 8l-1 5"/></svg><span>Marche</span><kbd>W</kbd></button>
+    <button class="tool" data-tool="pano" aria-pressed="false" title="Immersion 360° (I)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.4 2.6 14.6 0 17M12 3.5c-2.6 2.4-2.6 14.6 0 17"/></svg><span>360°</span><kbd>I</kbd></button>
+    <hr>
+    <button class="tool" data-tool="inspect" aria-pressed="false" title="Inspecter un élément (S)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3l13 8-6 1.5L9 19z"/></svg><span>Inspecter</span><kbd>S</kbd></button>
+    <button class="tool" data-tool="measure" aria-pressed="false" title="Mesurer (M)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17L17 3l4 4L7 21z"/><path d="M7 13l2 2M10 10l2 2M13 7l2 2"/></svg><span>Mesure</span><kbd>M</kbd></button>
+    <button class="tool" data-tool="section" aria-pressed="false" title="Coupe horizontale (X)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l9-5 9 5-9 5z"/><path d="M3 15l9 5 9-5" opacity=".5"/><path d="M2 12h20" stroke-dasharray="2 2"/></svg><span>Coupe</span><kbd>X</kbd></button>
+    <hr>
+    <button class="tool" data-act="fit" title="Recentrer (F)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/><circle cx="12" cy="12" r="2.5"/></svg><span>Recentrer</span><kbd>F</kbd></button>
+    <button class="tool" data-act="capture" title="Capture (C)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span>Capture</span><kbd>C</kbd></button>
+  </nav>
+  <main class="vp" id="vp">
+    <canvas id="c"></canvas>
+    <div id="labels"></div>
+    <div class="hud" id="hud"></div>
+    <div class="vtools" role="toolbar" aria-label="Affichage">
+      <div class="vgrp" id="styleGrp"><button data-style="mat" title="Matériaux" aria-pressed="true"><i class="sw-mat"></i><span>Matériaux</span></button><button data-style="shaded" title="Ombré" aria-pressed="false"><i class="sw-shaded"></i><span>Ombré</span></button><button data-style="wire" title="Filaire" aria-pressed="false"><i class="sw-wire"></i><span>Filaire</span></button><button data-style="xray" title="Rayons X" aria-pressed="false"><i class="sw-xray"></i><span>Rayons X</span></button></div>
+      <div class="vgrp cams"><button data-cam="iso" title="Vue 3D">3D</button><button data-cam="top" title="Vue de dessus">Dessus</button><button data-cam="front" title="Vue de face">Face</button><button data-cam="fit" title="Tout voir">Tout voir</button></div>
+    </div>
+    <div class="secbar" id="secBar" hidden><span>Coupe</span><input type="range" id="secH" min="0" max="1" step="0.001" value="1" aria-label="Hauteur de coupe"><b id="secV">—</b><button class="sb-btn" id="secOff" title="Retirer la coupe" aria-label="Retirer la coupe"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="joy" id="joy" hidden aria-hidden="true"><i></i></div>
+    <div class="arbar" id="arBar" role="toolbar" aria-label="Réalité augmentée">
+      <button class="ab-go" id="arGo" title="Lancer la réalité augmentée" aria-label="Lancer la réalité augmentée"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3"/><path d="M12 7l4.5 2.5v5L12 17l-4.5-2.5v-5z"/></svg></button>
+      <div class="ab-info"><b>Réalité augmentée</b><span id="arInfo">Maquette posée à l'échelle 1:1</span></div>
+      <label class="sb-sel" title="Échelle de la maquette en AR"><select id="arScaleSel" aria-label="Échelle"><option value="1">1:1</option><option value="0.1">1:10</option><option value="0.05">1:20</option><option value="0.02">1:50</option><option value="0.01">1:100</option><option value="0.005">1:200</option></select></label>
+    </div>
+    <div class="badge" id="selBadge" hidden></div>
+    <div class="loadbox" id="loadBox" hidden><div class="ap-spin" aria-hidden="true"></div><div><b id="loadTitle">Chargement</b><span id="loadStep"></span><i class="lb-bar"><i id="loadBar"></i></i></div></div>
+    <div class="vp-empty" id="vpEmpty" hidden><b>Aucune maquette chargée.</b><span>Choisissez un fichier dans l'accueil, ou ouvrez la maquette d'exemple.</span><button class="btn primary" id="vpHome">Mes maquettes</button></div>
+  </main>
+  <footer class="cmd">
+    <div id="prompt" aria-live="polite"></div>
+    <div class="status" role="toolbar" aria-label="Affichage">
+      <button data-opt="shadows" aria-pressed="true" title="Ombres portées">OMBRES</button>
+      <button data-opt="edges" aria-pressed="false" title="Arêtes des éléments">ARÊTES</button>
+      <button data-opt="ground" aria-pressed="true" title="Sol et grille">SOL</button>
+      <span class="ngf" id="statOut" title="Taille de la maquette">—</span>
+    </div>
+  </footer>
+  <section class="panel" id="panel">
+    <div class="sheethead"><i></i></div>
+    <div class="tabs" role="tablist"><button data-tab="tree" aria-selected="true">Maquette</button><button data-tab="props" aria-selected="false">Données</button><button data-tab="gallery" aria-selected="false">Galerie</button><button data-tab="info" aria-selected="false">Infos</button></div>
+    <div class="pbody" id="pbody"></div>
+  </section>
+  <div id="scrim"></div>
+</div>
+
+<!-- Réalité augmentée (WebXR) : interface superposée à la caméra -->
+<div id="arUi" hidden>
+  <div class="ar-top"><span class="hud-chip" id="arStatus">Visez une surface plane pour placer la maquette</span><button class="ar-x" id="arExit" aria-label="Quitter la réalité augmentée">✕</button></div>
+  <div class="ar-card" id="arCard" hidden></div>
+  <div class="ar-adjust" id="arAdjust">
+    <div class="ar-row"><span>Échelle</span><input type="range" id="arScale" min="0" max="1000" step="1" value="1000" aria-label="Échelle"><b id="arScaleV">1:1</b></div>
+    <div class="ar-row presets"><button data-ars="0.01">1:100</button><button data-ars="0.02">1:50</button><button data-ars="0.05">1:20</button><button data-ars="1">1:1</button></div>
+    <div class="ar-row split"><div class="ar-g"><span>Hauteur</span><button class="ar-step" data-arh="-0.05" aria-label="Descendre">−</button><b id="arHV">+0.00 m</b><button class="ar-step" data-arh="0.05" aria-label="Monter">+</button></div><div class="ar-g"><span>Rotation</span><button class="ar-step" data-arr="-15" aria-label="Tourner à gauche">⟲</button><button class="ar-step" data-arr="15" aria-label="Tourner à droite">⟳</button></div></div>
+  </div>
+  <div class="ar-bottom">
+    <button class="btn-hud" id="arReset">RESET</button>
+    <button class="btn-hud btn-place" id="arPlace">PLACER</button>
+    <button class="btn-hud" id="arCap">CAPTURE</button>
+    <button class="btn-hud" id="arInspect">INSPECTER</button>
+  </div>
+</div>
+
+<div class="menu" id="fileMenu" hidden>
+  <button data-act="home"><b>Mes maquettes</b><span>Accueil : maquettes et galerie de cet appareil</span></button>
+  <button data-act="import"><b>Importer une maquette…</b><span>GLB, glTF ou IFC (ARCHIPLAN, Revit, ArchiCAD…)</span></button>
+  <button data-act="sample"><b>Maquette d'exemple</b><span>Petite maison à visiter et à poser en AR</span></button>
+  <hr><div class="lbl">Exporter <span class="lock" hidden>· licence requise</span></div>
+  <button data-act="png"><b>Image HD (.png)</b><span>Capture de la vue actuelle en haute définition</span></button>
+  <button data-act="glb"><b>Maquette (.glb)</b><span>Avec la hiérarchie et les données BIM</span></button>
+  <button data-act="usdz"><b>Maquette pour iPhone (.usdz)</b><span>Pour AR Quick Look sur iPhone et iPad</span></button>
+</div>
+<div class="menu" id="userMenu" hidden>
+  <div class="who"><b id="umName"></b><span id="umMail"></span></div><span class="lic" id="umLic"></span><hr>
+  <button data-um="licence"><b>Ma licence ARCHIVISION</b><span>Droits liés à votre compte Studio Prism</span></button>
+  <button data-um="fiche"><b>Fiche client</b><span>Coordonnées partagées entre les apps Studio Prism</span></button>
+  <button data-um="home"><b>Accueil</b><span>Mes maquettes et ma galerie</span></button>
+  <button data-um="security"><b>Code PIN et sécurité</b><span>Code PIN du compte, empreinte ou visage (facultatif)</span></button>
+  <button data-um="lock" id="umLock"><b>Verrouiller</b><span>Le code PIN sera demandé pour revenir</span></button>
+  <button data-um="theme"><b>Thème clair / sombre</b><span>Change l'apparence de l'interface sur cet appareil</span></button>
+  <hr><button data-um="logout"><b>Se déconnecter</b><span>Sur cet appareil</span></button>
+  <button data-um="delete" class="danger"><b>Supprimer mon compte</b><span>Sur le site Studio Prism, avec votre mot de passe et votre code PIN</span></button>
+</div>
+
+<section id="home" hidden aria-label="Accueil ARCHIVISION">
+  <header class="h-top">
+    <div class="brand" id="homeBrand"><span class="brand-mark"><img src="assets/emblem-64.webp" alt="" width="30" height="25"></span><div><b>ARCHI<span class="plan">VISION</span></b><small>Studio Prism · Prism App</small></div></div>
+    <nav class="h-tabs" id="homeTabs" role="tablist"><button type="button" role="tab" data-htab="mine" aria-selected="true">Mes maquettes</button><button type="button" role="tab" data-htab="gallery" aria-selected="false">Galerie</button></nav>
+    <div class="h-acts">
+      <button type="button" id="homeLic" class="h-lic" hidden>Découverte</button>
+      <a class="h-site" href="https://groupestudioprism.github.io/Studio-Prism/" target="_blank" rel="noopener">Studio Prism ↗</a>
+      <button type="button" class="ib" id="homeUser" aria-haspopup="true" aria-label="Mon compte"></button>
+    </div>
+  </header>
+  <div class="h-scroll">
+    <section class="h-hero">
+      <div class="h-hello"><p class="h-eyebrow">Espace maquettes</p><h1 id="homeHello">Bonjour</h1><p id="homeSub">Vos maquettes BIM, à visiter en 3D ou à poser en réalité augmentée sur le chantier.</p>
+        <div class="h-quick">
+          <button type="button" class="hq primary" id="homeNewP"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 21h14"/></svg><span><b>Importer</b><small>GLB, glTF, IFC</small></span></button>
+          <button type="button" class="hq" id="homeSample"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7M5 10v10h14V10"/></svg><span><b>Exemple</b><small>Maison à visiter</small></span></button>
+          <button type="button" class="hq" id="homeAR"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3"/><path d="M12 7l4.5 2.5v5L12 17l-4.5-2.5v-5z"/></svg><span><b>Voir en AR</b><small id="homeARsub">Dernière maquette</small></span></button>
+          <button type="button" class="hq" id="homeAP"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V8l8-4 8 4v12"/><path d="M4 20h16M9 20v-6h6v6"/></svg><span><b>ARCHIPLAN</b><small>Export Archi Vision</small></span></button>
+        </div></div>
+      <aside class="h-quota" id="homeQuota" aria-live="polite"></aside>
+    </section>
+    <div class="h-offer" id="homeOffer" hidden></div>
+    <main class="h-body" id="homeBody"></main>
+    <footer class="h-foot">Studio Prism · Creative &amp; Technical Solutions · ARCHIVISION</footer>
+  </div>
+  <div class="h-busy" id="homeBusy" hidden><div class="ap-spin" aria-hidden="true"></div><span></span></div>
+  <input type="file" id="homeFile" accept=".glb,.gltf,.ifc,.bin,.png,.jpg,.jpeg,.webp,.ktx2,model/gltf-binary,model/gltf+json" multiple hidden>
+</section>
+<div class="menu" id="homeMenu" hidden></div>
+<div class="menu" id="treeMenu" hidden></div>
+<div id="apDlg" hidden role="dialog" aria-modal="true"><div class="dlg-card"></div></div>
+<div id="photoDlg" hidden role="dialog" aria-modal="true" aria-label="Photo"><div class="ph-card"></div></div>
+<div id="toast" hidden></div>
