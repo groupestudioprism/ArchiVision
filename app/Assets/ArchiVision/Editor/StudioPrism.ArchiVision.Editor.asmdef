@@ -1,0 +1,14 @@
+{
+  "name": "StudioPrism.ArchiVision.Editor",
+  "rootNamespace": "StudioPrism.ArchiVision.EditorTools",
+  "references": ["StudioPrism.ArchiVision", "Unity.XR.ARFoundation", "Unity.XR.ARSubsystems", "Unity.XR.CoreUtils", "Unity.XR.Management", "Unity.XR.Management.Editor", "Unity.RenderPipelines.Universal.Runtime", "Unity.RenderPipelines.Core.Runtime"],
+  "includePlatforms": ["Editor"],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

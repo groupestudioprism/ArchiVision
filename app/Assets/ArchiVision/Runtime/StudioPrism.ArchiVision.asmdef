@@ -1,0 +1,14 @@
+{
+  "name": "StudioPrism.ArchiVision",
+  "rootNamespace": "StudioPrism.ArchiVision",
+  "references": ["Unity.XR.ARFoundation", "Unity.XR.ARSubsystems", "Unity.XR.CoreUtils", "Unity.XR.Management", "glTFast", "Unity.InputSystem", "Unity.RenderPipelines.Universal.Runtime", "Unity.RenderPipelines.Core.Runtime"],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": ["Newtonsoft.Json.dll"],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

@@ -1,0 +1,186 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>ARCHIVISION · convertisseur IFC</title></head><body style="font:14px system-ui,sans-serif;margin:24px;color:#0B1F45"><p id="st">Convertisseur IFC → GLB…</p>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module">
+/* ============ ARCHIVISION · moteur 3D (module ES, Three.js r160 comme ARCHIPLAN) ============
+   Visite 3D (orbite, marche, immersion 360°), hiérarchie BIM, données IFC / ARCHIPLAN, mesure, coupe,
+   réalité augmentée WebXR (pose sur surface, échelle, hauteur, rotation, capture, inspection), galerie annotée. */
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {DRACOLoader} from 'three/addons/loaders/DRACOLoader.js';
+import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
+import {GLTFExporter} from 'three/addons/exporters/GLTFExporter.js';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
+import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
+
+const WEB_IFC_VERSION = '0.0.77';
+const WEB_IFC_URL = `https://cdn.jsdelivr.net/npm/web-ifc@${WEB_IFC_VERSION}/`;
+const DRACO_URL = 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/gltf/';
+const APP_VERSION = '1.0.0';
+const frame = () => new Promise(r => requestAnimationFrame(() => r()));
+/* export GLB : les données BIM (userData) partent dans « extras » ; les objets internes à la vue sont retirés le temps de l'export */
+async function exportGLB(root){
+  const saved = [];
+  root.traverse(o => {
+    const ud = o.userData; if (!ud) return;
+    const priv = Object.keys(ud).filter(k => k.startsWith('__'));
+    if (priv.length){ saved.push([o, Object.fromEntries(priv.map(k => [k, ud[k]])), o.material]); priv.forEach(k => delete ud[k]); }
+  });
+  for (const [o, priv] of saved){ if (priv.__orig) o.material = priv.__orig; if (priv.__edges) o.remove(priv.__edges); }
+  const vis = []; root.traverse(o => { if (!o.visible){ vis.push(o); o.visible = true; } });
+  const pos = root.position.clone(), sc = root.scale.clone(); root.position.set(0, 0, 0); root.scale.setScalar(1);
+  try {
+    const out = await new GLTFExporter().parseAsync(root, {binary:true, onlyVisible:false, maxTextureSize:4096});
+    return new Blob([out], {type:'model/gltf-binary'});
+  } finally {
+    root.position.copy(pos); root.scale.copy(sc); root.updateMatrixWorld(true);
+    vis.forEach(o => o.visible = false);
+    for (const [o, priv, mat] of saved){ Object.assign(o.userData, priv); o.material = mat; if (priv.__edges) o.add(priv.__edges); }
+  }
+}
+
+/* ---------- IFC → Three.js (web-ifc, chargé à la demande) ---------- */
+let ifcApiP = null;
+function ifcApi(){
+  return ifcApiP || (ifcApiP = (async () => {
+    const W = await import(/* @vite-ignore */ WEB_IFC_URL + 'web-ifc-api.js');
+    const api = new W.IfcAPI(); api.SetWasmPath(WEB_IFC_URL, true); await api.Init(); api.SetLogLevel?.(W.LogLevel?.LOG_LEVEL_OFF ?? 6);
+    return {api, W};
+  })().catch(e => { ifcApiP = null; throw new Error('Le lecteur IFC (web-ifc) n\'a pas pu se charger. Vérifiez la connexion.'); }));
+}
+const IFC_FR = {IFCPROJECT:'Projet', IFCSITE:'Site', IFCBUILDING:'Bâtiment', IFCBUILDINGSTOREY:'Niveau', IFCSPACE:'Espace', IFCWALL:'Mur', IFCWALLSTANDARDCASE:'Mur', IFCSLAB:'Dalle', IFCROOF:'Toiture',
+  IFCDOOR:'Porte', IFCWINDOW:'Fenêtre', IFCCOLUMN:'Poteau', IFCBEAM:'Poutre', IFCSTAIR:'Escalier', IFCSTAIRFLIGHT:'Volée d\'escalier', IFCRAILING:'Garde-corps', IFCCOVERING:'Revêtement',
+  IFCFURNISHINGELEMENT:'Mobilier', IFCFURNITURE:'Mobilier', IFCMEMBER:'Membrure', IFCPLATE:'Plaque', IFCCURTAINWALL:'Mur-rideau', IFCBUILDINGELEMENTPROXY:'Élément', IFCFOOTING:'Fondation', IFCPILE:'Pieu',
+  IFCRAMP:'Rampe', IFCRAMPFLIGHT:'Volée de rampe', IFCOPENINGELEMENT:'Ouverture', IFCFLOWTERMINAL:'Terminal', IFCFLOWSEGMENT:'Réseau', IFCFLOWFITTING:'Raccord', IFCSANITARYTERMINAL:'Sanitaire',
+  IFCDISTRIBUTIONELEMENT:'Équipement', IFCCHIMNEY:'Cheminée', IFCSHADINGDEVICE:'Occultation', IFCREINFORCINGBAR:'Armature', IFCELEMENTASSEMBLY:'Assemblage', IFCBUILDINGELEMENTPART:'Partie', IFCGEOGRAPHICELEMENT:'Élément géographique'};
+const IFC_CC = {}; // IFCWALLSTANDARDCASE → IfcWallStandardCase (noms d'usage)
+['Project', 'Site', 'Building', 'BuildingStorey', 'Space', 'Wall', 'WallStandardCase', 'Slab', 'Roof', 'Door', 'Window', 'Column', 'Beam', 'Stair', 'StairFlight', 'Railing', 'Covering', 'FurnishingElement', 'Furniture', 'Member', 'Plate', 'CurtainWall',
+  'BuildingElementProxy', 'Footing', 'Pile', 'Ramp', 'RampFlight', 'OpeningElement', 'FlowTerminal', 'FlowSegment', 'FlowFitting', 'SanitaryTerminal', 'DistributionElement', 'Chimney', 'ShadingDevice', 'ReinforcingBar', 'ElementAssembly', 'BuildingElementPart', 'GeographicElement']
+  .forEach(n => IFC_CC['IFC' + n.toUpperCase()] = 'Ifc' + n);
+const ifcClass = t => { const u = String(t || '').toUpperCase(); return IFC_CC[u] || (u.startsWith('IFC') ? 'Ifc' + u.slice(3).charAt(0) + u.slice(4).toLowerCase() : String(t || '')); };
+const iv = v => v == null ? null : typeof v !== 'object' ? v : Array.isArray(v) ? v.map(iv) : (v.value !== undefined ? v.value : v._representationValue !== undefined ? v._representationValue : null);
+
+async function parseIFC(bytes, onStep = () => {}){
+  onStep('Chargement du lecteur IFC…');
+  const {api, W} = await ifcApi();
+  onStep('Lecture du fichier IFC…'); await frame();
+  let mid;
+  try { mid = api.OpenModel(bytes, {COORDINATE_TO_ORIGIN:true, USE_FAST_BOOLS:true}); } catch(e){ throw new Error('Fichier IFC illisible.'); }
+  if (mid < 0) throw new Error('Fichier IFC illisible.');
+  try {
+    /* 1. géométrie, regroupée par élément puis par couleur */
+    onStep('Calcul de la géométrie…'); await frame();
+    const byEl = new Map(), mats = new Map();
+    const matFor = c => { const k = [c.x, c.y, c.z, c.w].map(v => v.toFixed(3)).join(); let m = mats.get(k); if (!m){ m = new THREE.MeshStandardMaterial({color:new THREE.Color(c.x, c.y, c.z).convertSRGBToLinear(), roughness:0.8, metalness:0, transparent:c.w < 0.99, opacity:c.w, side:THREE.DoubleSide, depthWrite:c.w >= 0.99}); m.name = c.w < 0.99 ? 'Vitrage' : 'IFC ' + k; mats.set(k, m); } return m; };
+    let nGeo = 0;
+    api.StreamAllMeshes(mid, mesh => {
+      const eid = mesh.expressID, pgs = mesh.geometries; let slot = byEl.get(eid); if (!slot) byEl.set(eid, slot = new Map());
+      for (let i = 0; i < pgs.size(); i++){
+        const pg = pgs.get(i), geo = api.GetGeometry(mid, pg.geometryExpressID);
+        const v = api.GetVertexArray(geo.GetVertexData(), geo.GetVertexDataSize()), idx = api.GetIndexArray(geo.GetIndexData(), geo.GetIndexDataSize());
+        const n = v.length / 6, pos = new Float32Array(n * 3), nor = new Float32Array(n * 3);
+        for (let k = 0; k < n; k++){ pos[k * 3] = v[k * 6]; pos[k * 3 + 1] = v[k * 6 + 1]; pos[k * 3 + 2] = v[k * 6 + 2]; nor[k * 3] = v[k * 6 + 3]; nor[k * 3 + 1] = v[k * 6 + 4]; nor[k * 3 + 2] = v[k * 6 + 5]; }
+        const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); g.setIndex(new THREE.BufferAttribute(new Uint32Array(idx), 1));
+        g.applyMatrix4(new THREE.Matrix4().fromArray(pg.flatTransformation));
+        const m = matFor(pg.color); let arr = slot.get(m); if (!arr) slot.set(m, arr = []); arr.push(g);
+        geo.delete?.(); nGeo++;
+      }
+    });
+    if (!nGeo) throw new Error('Ce fichier IFC ne contient aucune géométrie affichable.');
+    /* 2. relations : propriétés, matériaux, types (une seule passe) */
+    onStep('Lecture des propriétés BIM…'); await frame();
+    const lines = t => { try { const v = api.GetLineIDsWithType(mid, t), out = []; for (let i = 0; i < v.size(); i++) out.push(v.get(i)); return out; } catch(e){ return []; } };
+    const get = (id, flat = false) => { try { return api.GetLine(mid, id, flat); } catch(e){ return null; } };
+    const psetOf = new Map(), matOf = new Map(), typeOf = new Map();
+    const push = (map, k, v) => { let a = map.get(k); if (!a) map.set(k, a = []); a.push(v); };
+    for (const rid of lines(W.IFCRELDEFINESBYPROPERTIES)){ const r = get(rid); const d = r?.RelatingPropertyDefinition?.value; if (d) for (const o of r.RelatedObjects || []) push(psetOf, o.value, d); }
+    for (const rid of lines(W.IFCRELASSOCIATESMATERIAL)){ const r = get(rid); const d = r?.RelatingMaterial?.value; if (d) for (const o of r.RelatedObjects || []) push(matOf, o.value, d); }
+    for (const rid of lines(W.IFCRELDEFINESBYTYPE)){ const r = get(rid); const d = r?.RelatingType?.value; if (d) for (const o of r.RelatedObjects || []) typeOf.set(o.value, d); }
+    const readPset = pid => {
+      const p = get(pid, true); if (!p) return null; const out = {};
+      for (const h of p.HasProperties || []){ const nm = iv(h?.Name); if (!nm) continue; const val = h.NominalValue !== undefined ? iv(h.NominalValue) : h.EnumerationValues ? iv(h.EnumerationValues).join(', ') : h.ListValues ? iv(h.ListValues).join(', ') : null; if (val != null && val !== '') out[nm] = val; }
+      for (const q of p.Quantities || []){ const nm = iv(q?.Name); if (!nm) continue; const val = iv(q.LengthValue ?? q.AreaValue ?? q.VolumeValue ?? q.CountValue ?? q.WeightValue ?? q.TimeValue); if (val != null) out[nm] = typeof val === 'number' ? Math.round(val * 1000) / 1000 : val; }
+      return {name:iv(p.Name) || 'Propriétés', props:out};
+    };
+    const readMat = mid_ => {
+      const m = get(mid_, true); if (!m) return {};
+      const layerSet = m.ForLayerSet || (m.MaterialLayers ? m : null);
+      if (layerSet?.MaterialLayers) return {couches:layerSet.MaterialLayers.map(l => ({materiau:iv(l.Material?.Name) || iv(l.Name) || '—', epaisseur:Math.round((iv(l.LayerThickness) || 0) * 1000) / 1000}))};
+      if (m.Materials) return {materiaux:m.Materials.map(x => iv(x?.Name)).filter(Boolean)};
+      if (m.MaterialConstituents) return {materiaux:m.MaterialConstituents.map(x => iv(x?.Material?.Name) || iv(x?.Name)).filter(Boolean)};
+      if (m.Name) return {materiaux:[iv(m.Name)]};
+      return {};
+    };
+    const info = (eid, type) => {
+      const l = get(eid) || {}, cls = ifcClass(type || api.GetNameFromTypeCode?.(api.GetLineType(mid, eid)));
+      const d = {expressID:eid, classe:cls, nom:iv(l.Name) || '', globalId:iv(l.GlobalId) || ''};
+      const desc = iv(l.Description), ot = iv(l.ObjectType), tag = iv(l.Tag), ln = iv(l.LongName), el = iv(l.Elevation);
+      if (desc) d.description = desc; if (ot) d.typeObjet = ot; if (tag) d.reference = tag; if (ln) d.nomLong = ln; if (el != null && typeof el === 'number') d.altitude = Math.round(el * 1000) / 1000;
+      const pd = iv(l.PredefinedType); if (pd && pd !== 'NOTDEFINED' && pd !== 'USERDEFINED') d.typePredefini = pd;
+      const ty = typeOf.get(eid); if (ty){ const t = get(ty); if (t) d.type = iv(t.Name) || ifcClass(api.GetNameFromTypeCode?.(api.GetLineType(mid, ty))); for (const hp of t?.HasPropertySets || []) push(psetOf, eid, hp.value); }
+      for (const m of matOf.get(eid) || []) Object.assign(d, readMat(m));
+      const ps = {}; for (const pid of psetOf.get(eid) || []){ const r = readPset(pid); if (r && Object.keys(r.props).length) ps[r.name] = {...(ps[r.name] || {}), ...r.props}; }
+      if (Object.keys(ps).length) d.psets = ps;
+      return d;
+    };
+    /* 3. arborescence spatiale : Projet > Site > Bâtiment > Niveaux > éléments */
+    onStep('Construction de la hiérarchie…'); await frame();
+    let tree = null; try { tree = await api.properties.getSpatialStructure(mid, false); } catch(e){}
+    const root = new THREE.Group(); root.name = 'Maquette IFC';
+    const used = new Set();
+    /* fichier sans couleurs (un ou deux styles pour toute la maquette) : teintes par classe, comme ARCHIPLAN */
+    const uniform = mats.size <= 2, CLS = {}, CLS_COL = {IfcWall:0xEDE6DA, IfcWallStandardCase:0xEDE6DA, IfcSlab:0xBDBDB8, IfcRoof:0xA6533A, IfcCovering:0xD9D3C7, IfcDoor:0x8B6A4E, IfcWindow:0x2B3440, IfcColumn:0xB0B3B5, IfcBeam:0xB0B3B5, IfcStair:0xC9C2B5, IfcStairFlight:0xC9C2B5, IfcRailing:0x4A5560, IfcFurnishingElement:0xB98B5E, IfcFurniture:0xB98B5E, IfcSpace:0x7FE0CF, IfcFooting:0x9E9E99, IfcPlate:0x9FC9E0, IfcMember:0x8A939B};
+    const clsMat = (cls, m) => { if (!uniform || m.transparent) return m; const c = CLS_COL[cls]; if (c == null) return m; return CLS[cls] || (CLS[cls] = Object.assign(new THREE.MeshStandardMaterial({color:c, roughness:0.8, metalness:0, side:THREE.DoubleSide}), {name:IFC_FR[cls.toUpperCase()] || cls})); };
+    const meshesFor = (eid, g, label, cls) => {
+      const slot = byEl.get(eid); if (!slot) return 0; used.add(eid); let n = 0;
+      for (const [m0, geos] of slot){ const m = clsMat(cls, m0); const geo = geos.length > 1 ? BufferGeometryUtils.mergeGeometries(geos, false) : geos[0]; if (geos.length > 1) geos.forEach(x => x.dispose()); const me = new THREE.Mesh(geo, m); me.name = `${label} · ${m.name}`; g.add(me); n++; }
+      return n;
+    };
+    const build = (node, parent) => {
+      const cls = ifcClass(node.type), d = info(node.expressID, node.type);
+      const g = new THREE.Group(); g.name = d.nom || d.nomLong || IFC_FR[String(node.type).toUpperCase()] || cls; g.userData.ifc = d;
+      if (cls === 'IfcSpace' || cls === 'IfcOpeningElement') g.visible = false;
+      meshesFor(node.expressID, g, g.name, d.classe);
+      for (const c of node.children || []) build(c, g);
+      if (g.children.length || ['IfcProject', 'IfcSite', 'IfcBuilding', 'IfcBuildingStorey'].includes(cls)) parent.add(g);
+    };
+    if (tree) build(tree, root);
+    const rest = [...byEl.keys()].filter(e => !used.has(e));
+    if (rest.length){ const other = new THREE.Group(); other.name = 'Autres'; other.userData.bim = {groupe:'Éléments hors structure spatiale'};
+      for (const eid of rest){ const d = info(eid); const g = new THREE.Group(); g.name = d.nom || IFC_FR[d.classe.toUpperCase()] || d.classe; g.userData.ifc = d; if (d.classe === 'IfcSpace' || d.classe === 'IfcOpeningElement') g.visible = false; meshesFor(eid, g, g.name, d.classe); other.add(g); }
+      (root.children[0] || root).add(other); }
+    const proj = root.children[0]?.userData?.ifc; if (proj) root.userData.ifcProjet = {nom:proj.nom || proj.nomLong || '', schema:api.GetModelSchema?.(mid) || ''};
+    return root;
+  } finally { try { api.CloseModel(mid); } catch(e){} }
+}
+
+/* ============ Pilote du convertisseur (application Android ARCHIVISION) ============
+   La WebView invisible de l'app expose « AVIfcBridge » : size(), read(i) (morceaux base64 de 192 Ko), write(b64), progress(msg), done(meta), fail(msg). */
+(async () => {
+  const B = window.AVIfcBridge, st = document.getElementById('st');
+  const say = m => { if (st) st.textContent = m; try { B?.progress(m); } catch(e){} };
+  if (!B){ say('Convertisseur IFC → GLB interne à l\'application ARCHIVISION (Android). Aucune action n\'est possible depuis ce navigateur.'); return; }
+  try {
+    const size = Number(B.size()), CH = 192 * 1024, n = Math.ceil(size / CH), bytes = new Uint8Array(size);
+    if (!size) throw new Error('fichier IFC vide.');
+    let off = 0;
+    for (let i = 0; i < n; i++){
+      const bin = atob(B.read(i)); for (let k = 0; k < bin.length; k++) bytes[off++] = bin.charCodeAt(k);
+      if (i % 10 === 0) say(`Lecture du fichier IFC… ${Math.round(off / size * 100)} %`);
+    }
+    if (off !== size) throw new Error('lecture incomplète du fichier IFC.');
+    const root = await parseIFC(bytes, say);
+    say('Préparation de la maquette 3D…'); await frame();
+    const blob = await exportGLB(root), glb = new Uint8Array(await blob.arrayBuffer());
+    const OUT = 96 * 1024;
+    for (let i = 0; i < glb.length; i += OUT){
+      const part = glb.subarray(i, i + OUT); let s = ''; for (let k = 0; k < part.length; k += 8192) s += String.fromCharCode.apply(null, part.subarray(k, k + 8192));
+      B.write(btoa(s));
+      if ((i / OUT) % 20 === 0) say(`Enregistrement… ${Math.round(i / glb.length * 100)} %`);
+    }
+    B.done(JSON.stringify({projet:root.userData.ifcProjet || null, octets:glb.length}));
+  } catch(e){ try { B.fail(e?.message || String(e)); } catch(_){} }
+})();
+</script></body></html>

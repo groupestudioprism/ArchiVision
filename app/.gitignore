@@ -1,0 +1,14 @@
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/AVBridge/
+*.csproj
+*.sln
+*.apk
+*.aab
+.vs/
+.idea/

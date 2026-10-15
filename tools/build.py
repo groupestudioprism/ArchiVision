@@ -60,5 +60,16 @@ def main(argv):
     live = HEAD + demo.replace('const FIREBASE_CONFIG = null;', CONFIG).replace('<title>ARCHIVISION</title>', '<title>ARCHIVISION · Studio Prism</title>', 1) + '</body></html>\n'
     (ROOT / 'index.html').write_text(live, encoding='utf-8')
     (ROOT / 'manifest.webmanifest').write_text(json.dumps(MANIFEST, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    # convertisseur IFC → GLB de l'application Android (WebView invisible) : même code IFC que le site
+    load = (S / 'engine' / '30-load.js').read_text(encoding='utf-8')
+    a, b = load.index('/* export GLB'), load.index('/* ---------- ZIP')
+    imports = (S / 'engine' / '00-imports.js').read_text(encoding='utf-8')
+    conv = ('<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+            '<meta name="robots" content="noindex"><title>ARCHIVISION · convertisseur IFC</title></head>'
+            '<body style="font:14px system-ui,sans-serif;margin:24px;color:#0B1F45"><p id="st">Convertisseur IFC → GLB…</p>\n'
+            + rd('parts/importmap.html') + '<script type="module">\n' + imports
+            + 'const frame = () => new Promise(r => requestAnimationFrame(() => r()));\n'
+            + load[a:b] + rd('ifc/driver.js') + '</script></body></html>\n')
+    (ROOT / 'ifc-convert.html').write_text(conv, encoding='utf-8')
     print('index.html', len(live), 'octets · dist/archivision-demo.html', len(demo), 'octets')
 if __name__ == '__main__': main(sys.argv[1:])
