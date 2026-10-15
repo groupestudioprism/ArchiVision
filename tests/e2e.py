@@ -125,6 +125,10 @@ async def main():
         await pg.evaluate("document.documentElement.dataset.theme='dark'"); await pg.wait_for_timeout(400)
         await pg.screenshot(path=f'{OUT}/18_sombre.png')
         await pg.evaluate("document.documentElement.dataset.theme='light'")
+        # session restaurée (déjà connecté) : l'intro doit disparaître et l'accueil s'afficher
+        await pg.reload(); await pg.wait_for_selector('#splash', state='detached', timeout=20000)
+        check(await pg.is_visible('#home') and await pg.is_hidden('#auth'), 'déjà connecté : intro retirée, accueil affiché')
+        await pg.screenshot(path=f'{OUT}/18b_session_restauree.png')
         # mode découverte (sans licence) : import et AR bloqués
         d = await b.new_context(viewport={'width':1280, 'height':800}); pd = await d.new_page()
         await pd.goto(URL); await pd.wait_for_selector('#ap-email', timeout=25000); await signup(pd, 'decouverte@studioprism.fr'); await pd.wait_for_timeout(1500)

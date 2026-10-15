@@ -141,3 +141,6 @@ window.AVDebug = {V, AR, scene, camera, controls, select, elementOf, pickAt, set
 setTool('orbit'); setTab('tree'); $('#vpEmpty').hidden = false; prompt(TOOL_HINT.orbit);
 window.__apReady = true;
 window.dispatchEvent(new Event('ap:ready'));
+/* fin de l'intro : retirée ici aussi quand la session est restaurée sans passer par l'écran de compte (même principe qu'ARCHITRAFIC) */
+(() => { const sp = document.getElementById('splash'); if (!sp) return; const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  setTimeout(() => { sp.classList.add('done'); setTimeout(() => sp.remove(), 600); }, Math.max(reduce ? 300 : 0, (reduce ? 600 : 3000) - performance.now())); })();
