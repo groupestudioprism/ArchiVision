@@ -4,7 +4,7 @@ Maquettes BIM en **visite 3D** et en **réalité augmentée**, sur téléphone, 
 
 **En ligne (après activation de GitHub Pages) :** https://groupestudioprism.github.io/ArchiVision/
 
-> **État :** testé dans Chromium sans interface (`tests/e2e.py` : 16 contrôles, ordinateur et téléphone simulé), avec un GLB et un IFC exportés par ARCHIPLAN. **La réalité augmentée WebXR n'a pas pu être testée ici** (pas de caméra ni d'ARCore dans l'environnement de test) : à valider sur un téléphone Android avec Chrome, et AR Quick Look sur iPhone.
+> **État :** testé dans Chromium sans interface (`tests/e2e.py` : 17 contrôles, ordinateur et téléphone simulé), avec un GLB et un IFC exportés par ARCHIPLAN. **La réalité augmentée WebXR n'a pas pu être testée ici** (pas de caméra ni d'ARCore dans l'environnement de test) : à valider sur un téléphone Android avec Chrome, et AR Quick Look sur iPhone.
 
 ## Ce que reprend l'APK
 
@@ -30,7 +30,7 @@ Les maquettes (GLB, IFC d'origine + GLB converti) et les photos sont gardées **
 
 ## Licence
 
-Produit `archivision` du site Studio Prism (`licenses/{uid}_archivision`). Pour l'instant `FREE_FOR_ALL = true` dans `src/js/auth.js` : tout compte vérifié avec sa fiche client a toutes les fonctions. En passant à `false`, sans licence active : mode découverte (maquette d'exemple, visite 3D, données BIM) ; l'import, la réalité augmentée et les exports demandent la licence.
+Produit `archivision` du site Studio Prism : un administrateur attribue la licence `licenses/{uid}_archivision` (Administration → Utilisateurs → fiche du compte → « + Ajouter une licence » → ARCHIVISION), ou l'utilisateur active une clé. Sans licence active : **mode découverte** (maquette d'exemple, visite 3D, hiérarchie et données BIM) ; l'**import** des maquettes, la **réalité augmentée** et les **exports** demandent la licence. Un administrateur a tous les droits. Hors ligne, les derniers droits vérifiés restent valables 7 jours. (`FREE_FOR_ALL` dans `src/js/auth.js` ouvre tout gratuitement si on le passe à `true`.)
 
 ## Contenu du dépôt
 

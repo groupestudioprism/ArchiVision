@@ -13,9 +13,9 @@ const APP_ID = 'archivision';
    Sans licence active (statut « active » et non expirée) : mode découverte (maquette d'exemple, visite 3D ; import de vos maquettes, réalité augmentée et exports réservés aux licences).
    Un administrateur a tous les droits. */
 const LICENSE_PRODUCT = 'archivision';
-/* ARCHIVISION est gratuit pour l'instant : tout compte Studio Prism vérifié, avec sa fiche client, reçoit une licence gratuite.
-   Le jour où l'app devient payante, passer FREE_FOR_ALL à false : seules les licences licenses/{uid}_archivision ouvriront l'import, la réalité augmentée et les exports. */
-const FREE_FOR_ALL = true;
+/* ARCHIVISION demande une licence (licenses/{uid}_archivision). Passer FREE_FOR_ALL à true pour l'ouvrir gratuitement à tout compte vérifié avec sa fiche client.
+   Sans licence : mode découverte ; l'import, la réalité augmentée et les exports demandent la licence. */
+const FREE_FOR_ALL = false;
 const FREE_LICENSE = Object.freeze({type:'free', status:'active', expiresAt:null, expired:false, free:true});
 const SITE_URL = 'https://groupestudioprism.github.io/Studio-Prism/';
 const OFFERS_URL = SITE_URL + '#/produits/' + LICENSE_PRODUCT;

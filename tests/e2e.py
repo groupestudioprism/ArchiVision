@@ -125,6 +125,12 @@ async def main():
         await pg.evaluate("document.documentElement.dataset.theme='dark'"); await pg.wait_for_timeout(400)
         await pg.screenshot(path=f'{OUT}/18_sombre.png')
         await pg.evaluate("document.documentElement.dataset.theme='light'")
+        # mode découverte (sans licence) : import et AR bloqués
+        d = await b.new_context(viewport={'width':1280, 'height':800}); pd = await d.new_page()
+        await pd.goto(URL); await pd.wait_for_selector('#ap-email', timeout=25000); await signup(pd, 'decouverte@studioprism.fr'); await pd.wait_for_timeout(1500)
+        await pd.click('#homeNewP'); await pd.wait_for_timeout(600)
+        check('licence ARCHIVISION' in await pd.inner_text('#apCard'), 'sans licence : import → écran de licence'); await pd.screenshot(path=f'{OUT}/19_decouverte_licence.png')
+        await d.close()
         # téléphone
         m = await b.new_context(viewport={'width':390, 'height':844}, device_scale_factor=2, is_mobile=True, has_touch=True)
         pm = await m.new_page(); pm.on('pageerror', lambda e: errs.append('MOBILE ' + str(e)))
