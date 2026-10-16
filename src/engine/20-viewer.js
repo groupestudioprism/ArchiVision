@@ -86,6 +86,7 @@ function refreshMaterials(){
     o.castShadow = V.opts.shadows && V.style !== 'xray' && V.style !== 'wire';
     o.receiveShadow = V.opts.shadows && V.style === 'mat';
   }
+  if (typeof batchKey === 'function'){ if (batchKey() !== BATCH.key) batchSoon(); else batchLive(); }
   updateEdges(); markDirty();
 }
 function setStyle(s){ V.style = s; $$('#styleGrp [data-style]').forEach(b => b.setAttribute('aria-pressed', b.dataset.style === s)); refreshMaterials(); }
@@ -114,6 +115,7 @@ function setModel(root, rec){
   if (V.root){ pivot.remove(V.root); disposeObj(V.root); }
   STYLE_MATS.forEach(m => m.dispose()); STYLE_MATS.clear(); HL_MATS.forEach(m => m.dispose()); HL_MATS.clear();
   clearMeasures(); setSection(null);
+  if (typeof batchClear === 'function'){ batchClear(); BATCH.key = ''; }
   V.root = root; V.rec = rec; V.sel = null; V.selMeshes.clear(); V.meshes = []; V.tris = 0;
   root.traverse(o => {
     if (o.isMesh && !o.userData.__helper){
@@ -185,7 +187,7 @@ function focusObject(o){
 }
 
 /* ---------- Sélection ---------- */
-const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(); ray.layers.enableAll();   // voit aussi les objets fusionnés (calque 1)
 function pickAt(clientX, clientY){
   if (!V.root) return null;
   const r = canvas.getBoundingClientRect(); ndc.set((clientX - r.left) / r.width * 2 - 1, -(clientY - r.top) / r.height * 2 + 1);
@@ -211,13 +213,13 @@ function select(obj, {focus = false, from = 'view'} = {}){
 }
 
 /* ---------- Visibilité (hiérarchie) ---------- */
-function setVisible(o, v){ o.visible = v; markDirty(); }
+function setVisible(o, v){ o.visible = v; batchSoon(); markDirty(); }
 function isolate(o){
   V.root.traverse(x => { if (x !== V.root && !x.userData.__helper) x.visible = false; });
   for (let p = o; p && p !== V.root; p = p.parent) p.visible = true;
-  o.traverse(x => { if (!x.userData.__helper) x.visible = true; }); markDirty();
+  o.traverse(x => { if (!x.userData.__helper) x.visible = true; }); batchSoon(); markDirty();
 }
-function showAll(){ V.root?.traverse(x => { if (!x.userData.__helper || x.userData.__edges !== undefined) x.visible = true; }); updateEdges(); markDirty(); }
+function showAll(){ V.root?.traverse(x => { if (!x.userData.__helper || x.userData.__edges !== undefined) x.visible = true; }); updateEdges(); batchSoon(); markDirty(); }
 
 /* ---------- Boucle de rendu (à la demande hors AR) ---------- */
 let lastT = performance.now();
@@ -227,7 +229,7 @@ renderer.setAnimationLoop((now, xrFrame) => {
   stepFlight(now);
   for (const f of tickers) f(dt, now, xrFrame);
   if (V.tool === 'orbit' || V.tool === 'inspect' || V.tool === 'measure' || V.tool === 'section'){ if (controls.update()) V.dirty = Math.max(V.dirty, 1); }
-  if (renderer.xr.isPresenting || V.dirty > 0){ renderer.render(scene, camera); if (!renderer.xr.isPresenting) placeLabels(); V.dirty = Math.max(0, V.dirty - 1); }
+  if (renderer.xr.isPresenting || V.dirty > 0){ batchSync(); renderer.render(scene, camera); if (!renderer.xr.isPresenting) placeLabels(); V.dirty = Math.max(0, V.dirty - 1); }
 });
 
 /* ---------- Capture de la vue (HD) ---------- */
@@ -236,7 +238,7 @@ async function captureView({scale = 2, mime = 'image/jpeg', quality = 0.9, stamp
   const pr = Math.min(scale * 1, 4096 / Math.max(w0, h0)), sel = V.sel;
   if (sel) select(null);
   renderer.setPixelRatio(pr); renderer.setSize(w0, h0, false);
-  renderer.render(scene, camera);
+  batchSync(); renderer.render(scene, camera);
   const out = document.createElement('canvas'); out.width = canvas.width; out.height = canvas.height;
   const g = out.getContext('2d'); g.drawImage(canvas, 0, 0);
   renderer.setPixelRatio(pr0); renderer.setSize(w0, h0, false); if (sel) select(sel); markDirty();
@@ -256,7 +258,7 @@ async function thumbnail(){
   const st = V.style; if (st !== 'mat'){ V.style = 'mat'; refreshMaterials(); }
   const p0 = camera.position.clone(), t0 = controls.target.clone(); setView('iso', true);
   const w0 = canvas.clientWidth || 640, h0 = canvas.clientHeight || 400;
-  renderer.render(scene, camera);
+  batchSync(); renderer.render(scene, camera);
   const W = 480, H = 300, out = document.createElement('canvas'); out.width = W; out.height = H; const g = out.getContext('2d');
   const sw = canvas.width, sh = canvas.height, k = Math.max(W / sw, H / sh);
   g.fillStyle = '#F2F6F9'; g.fillRect(0, 0, W, H);

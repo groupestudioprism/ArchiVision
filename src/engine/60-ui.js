@@ -137,7 +137,7 @@ function leave(){ if (AR.session) AR.session.end(); }
 
 /* ---------- API pour l'accueil (script classique) ---------- */
 window.AVApp = {open, openSample, importFiles, leave, refreshGallery:() => { if (activeTab === 'gallery') renderGalleryTab(); }, state:() => ({tool:V.tool, mode:V.mode, style:V.style, name:V.rec?.name, meshes:V.meshes.length, tris:V.tris, size:V.size.toArray(), sel:V.sel ? objLabel(V.sel) : null, ar:AR.supported})};
-window.AVDebug = {V, AR, scene, camera, controls, select, elementOf, pickAt, setTool, setView, setStyle, objLabel, captureView, setSection, measures};
+window.AVDebug = {V, AR, scene, camera, controls, renderer, batch:on => { BATCH.on = !!on; batchBuild(); }, select, elementOf, pickAt, setTool, setView, setStyle, objLabel, captureView, setSection, measures};
 setTool('orbit'); setTab('tree'); $('#vpEmpty').hidden = false; prompt(TOOL_HINT.orbit);
 window.__apReady = true;
 window.dispatchEvent(new Event('ap:ready'));

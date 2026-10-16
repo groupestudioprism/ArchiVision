@@ -34,7 +34,7 @@ def assemble():
             + '<script>\n' + rd('js/auth.js') + rd('js/vision-home.js') + rd('js/auth-end.js') + '</script>\n'
             + rd('parts/importmap.html') + '<script type="module">\n' + engine + '</script>\n')
 HEAD = ('<!doctype html><html lang="fr"><head><meta charset="utf-8">'
-        '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'
+        '<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">'
         '<meta name="description" content="ARCHIVISION · Studio Prism : maquettes BIM (IFC, GLB) en visite 3D et en réalité augmentée, sur téléphone, tablette et ordinateur.">'
         '<meta name="theme-color" content="#0B1F45"><link rel="icon" href="assets/emblem-64.webp"><link rel="apple-touch-icon" href="assets/icon-192.png">'
         '<link rel="manifest" href="manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">'
@@ -44,7 +44,7 @@ HEAD = ('<!doctype html><html lang="fr"><head><meta charset="utf-8">'
         '<link rel="preconnect" href="https://securetoken.googleapis.com">'
         '<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>'
         + ''.join(f'<link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/{FB}/firebase-{n}-compat.js">' for n in ('app', 'auth', 'firestore')) +
-        '<style>[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}</style></head><body>\n')
+        '<style>[hidden]{display:none!important}html{overflow:hidden;overscroll-behavior:none}body{overflow:hidden;overscroll-behavior:none}*{overscroll-behavior-x:contain}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%}body{margin:0}</style></head><body>\n')
 MANIFEST = {
     'name': 'ARCHIVISION · Studio Prism', 'short_name': 'ARCHIVISION', 'lang': 'fr', 'start_url': './', 'scope': './', 'display': 'standalone',
     'background_color': '#F3F6F9', 'theme_color': '#0B1F45', 'description': 'Maquettes BIM en visite 3D et en réalité augmentée.',

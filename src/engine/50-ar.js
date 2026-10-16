@@ -135,7 +135,7 @@ async function arCaptureFrame(frame){
   pc.matrixWorld.copy(sub.matrixWorld); pc.matrixWorldInverse.copy(sub.matrixWorldInverse); pc.matrixAutoUpdate = false; pc.matrixWorldAutoUpdate = false;
   const rv = reticle.visible; reticle.visible = false;
   renderer.xr.enabled = false; const prevRT = renderer.getRenderTarget();
-  renderer.setRenderTarget(rt); renderer.setClearColor(0x000000, 0); renderer.clear(); renderer.render(scene, pc); renderer.setRenderTarget(prevRT);
+  renderer.setRenderTarget(rt); renderer.setClearColor(0x000000, 0); renderer.clear(); batchSync(); renderer.render(scene, pc); renderer.setRenderTarget(prevRT);
   renderer.xr.enabled = true; reticle.visible = rv;
   const px = new Uint8Array(W * H * 4); renderer.readRenderTargetPixels(rt, 0, 0, W, H, px); rt.dispose();
   const tmp = document.createElement('canvas'); tmp.width = W; tmp.height = H; tmp.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(px.buffer), W, H), 0, 0);

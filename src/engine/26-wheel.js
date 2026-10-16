@@ -4,7 +4,7 @@
   const STEP = 0.95, v = new THREE.Vector3(); let pend = 0, raf = 0, last = 0;
   const tick = now => { const dt = Math.min(50, now - (last || now)); last = now;
     if (Math.abs(pend) < 1e-4 || !controls.enabled){ pend = 0; raf = 0; return; }
-    const part = pend * (1 - Math.exp(-dt / 55)); pend -= part;
+    const part = Math.abs(pend) < 2e-3 ? pend : pend * (1 - Math.exp(-dt / 55));   /* fin du glissement : on applique le reste, le pas par cran est exact */ pend -= part;
     const dist = camera.position.distanceTo(controls.target), nd = Math.max(controls.minDistance, Math.min(controls.maxDistance, dist * Math.exp(part)));
     v.subVectors(camera.position, controls.target).setLength(nd); camera.position.copy(controls.target).add(v); controls.update();
     raf = requestAnimationFrame(tick); };

@@ -474,3 +474,20 @@ body[data-mode="sec"] .vtools,body[data-mode="sec"] .hud,body[data-mode="sec"] .
 .patlib{display:flex;flex-direction:column;gap:8px;max-height:280px;overflow:auto;padding:2px}.patg em{display:block;font-style:normal;font-size:11px;font-weight:700;color:var(--mut);letter-spacing:.04em;margin:2px 0 4px}
 .patgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:6px}
 .pat{border:1px solid var(--line);border-radius:8px;background:var(--bg);padding:3px 3px 4px;display:flex;flex-direction:column;gap:3px;cursor:pointer;color:var(--ink)}.pat img{width:100%;aspect-ratio:1;border-radius:5px;object-fit:cover;background:var(--line)}.pat span{font-size:10px;line-height:1.15}.pat.on{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 30%,transparent)}
+
+/* ---- téléphone : l'en-tête tient toujours dans la largeur de l'écran (sinon le navigateur élargit toute la page) ---- */
+#userMenu .um-narrow{display:none}
+.top{min-width:0;max-width:100%}
+@media (max-width:420px){ .top .acts{gap:4px;margin-left:auto} .modes button{padding:7px 6px} .top .ib{min-width:32px;padding:0 6px} }
+@media (max-width:400px){ .top .prism-gear:has(+ #userBtn:not([hidden])){display:none} #userMenu .um-narrow{display:flex} .top .modes + .acts{margin-left:6px} }
+@media (max-width:380px){ .modes button{padding:7px 5px;font-size:12px} .top{gap:3px;padding:6px 4px} .top .ib{min-width:31px;padding:0 5px} }
+@media (max-width:350px){ .modes button{padding:6px 4px;font-size:11.5px} .top .acts{gap:2px} .top .ib{min-width:30px;padding:0 4px} }
+/* Tactile : zones de toucher agrandies sans changer le dessin des boutons (pseudo-élément invisible) */
+#c{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+@media (pointer:coarse){
+  .tw,.te,.td,.status button,.modes button,.vgrp button,.tree-h .ib,#userMenu button,.tool{position:relative;-webkit-tap-highlight-color:transparent}
+  .tw::after{content:"";position:absolute;inset:-9px -6px}
+  .te::after,.td::after{content:"";position:absolute;inset:-6px -4px}
+  .status button::after{content:"";position:absolute;inset:-7px -1px}
+  .modes button::after,.vgrp button::after{content:"";position:absolute;inset:-5px 0}
+}

@@ -47,7 +47,7 @@ function exitFirstPerson(){
   controls.target.copy(camera.position).add(d.multiplyScalar(Math.max(2, V.radius / 2))); controls.update();
 }
 function applyLook(){ camera.rotation.set(look.pitch, look.yaw, 0, 'YXZ'); markDirty(); }
-const downRay = new THREE.Raycaster();
+const downRay = new THREE.Raycaster(); downRay.layers.enableAll();   // sols fusionnés (calque 1) compris
 /* altitude du sol sous un point : premier élément visible sous les yeux (sols, escaliers), sinon 0 */
 function floorAt(p, from = p.y + 0.6){
   if (!V.meshes.length) return 0;

@@ -1,4 +1,4 @@
-<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="description" content="ARCHIVISION · Studio Prism : maquettes BIM (IFC, GLB) en visite 3D et en réalité augmentée, sur téléphone, tablette et ordinateur."><meta name="theme-color" content="#0B1F45"><link rel="icon" href="assets/emblem-64.webp"><link rel="apple-touch-icon" href="assets/icon-192.png"><link rel="manifest" href="manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><link rel="preconnect" href="https://www.gstatic.com" crossorigin><link rel="preconnect" href="https://firestore.googleapis.com"><link rel="preconnect" href="https://identitytoolkit.googleapis.com"><link rel="preconnect" href="https://securetoken.googleapis.com"><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin><link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"><link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"><link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"><style>[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}</style></head><body>
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><meta name="description" content="ARCHIVISION · Studio Prism : maquettes BIM (IFC, GLB) en visite 3D et en réalité augmentée, sur téléphone, tablette et ordinateur."><meta name="theme-color" content="#0B1F45"><link rel="icon" href="assets/emblem-64.webp"><link rel="apple-touch-icon" href="assets/icon-192.png"><link rel="manifest" href="manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><link rel="preconnect" href="https://www.gstatic.com" crossorigin><link rel="preconnect" href="https://firestore.googleapis.com"><link rel="preconnect" href="https://identitytoolkit.googleapis.com"><link rel="preconnect" href="https://securetoken.googleapis.com"><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin><link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"><link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"><link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"><style>[hidden]{display:none!important}html{overflow:hidden;overscroll-behavior:none}body{overflow:hidden;overscroll-behavior:none}*{overscroll-behavior-x:contain}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%}body{margin:0}</style></head><body>
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('av.theme')==='dark'?'dark':'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
 <title>ARCHIVISION · Studio Prism</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -481,6 +481,23 @@ body[data-mode="sec"] .vtools,body[data-mode="sec"] .hud,body[data-mode="sec"] .
 .patlib{display:flex;flex-direction:column;gap:8px;max-height:280px;overflow:auto;padding:2px}.patg em{display:block;font-style:normal;font-size:11px;font-weight:700;color:var(--mut);letter-spacing:.04em;margin:2px 0 4px}
 .patgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:6px}
 .pat{border:1px solid var(--line);border-radius:8px;background:var(--bg);padding:3px 3px 4px;display:flex;flex-direction:column;gap:3px;cursor:pointer;color:var(--ink)}.pat img{width:100%;aspect-ratio:1;border-radius:5px;object-fit:cover;background:var(--line)}.pat span{font-size:10px;line-height:1.15}.pat.on{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 30%,transparent)}
+
+/* ---- téléphone : l'en-tête tient toujours dans la largeur de l'écran (sinon le navigateur élargit toute la page) ---- */
+#userMenu .um-narrow{display:none}
+.top{min-width:0;max-width:100%}
+@media (max-width:420px){ .top .acts{gap:4px;margin-left:auto} .modes button{padding:7px 6px} .top .ib{min-width:32px;padding:0 6px} }
+@media (max-width:400px){ .top .prism-gear:has(+ #userBtn:not([hidden])){display:none} #userMenu .um-narrow{display:flex} .top .modes + .acts{margin-left:6px} }
+@media (max-width:380px){ .modes button{padding:7px 5px;font-size:12px} .top{gap:3px;padding:6px 4px} .top .ib{min-width:31px;padding:0 5px} }
+@media (max-width:350px){ .modes button{padding:6px 4px;font-size:11.5px} .top .acts{gap:2px} .top .ib{min-width:30px;padding:0 4px} }
+/* Tactile : zones de toucher agrandies sans changer le dessin des boutons (pseudo-élément invisible) */
+#c{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+@media (pointer:coarse){
+  .tw,.te,.td,.status button,.modes button,.vgrp button,.tree-h .ib,#userMenu button,.tool{position:relative;-webkit-tap-highlight-color:transparent}
+  .tw::after{content:"";position:absolute;inset:-9px -6px}
+  .te::after,.td::after{content:"";position:absolute;inset:-6px -4px}
+  .status button::after{content:"";position:absolute;inset:-7px -1px}
+  .modes button::after,.vgrp button::after{content:"";position:absolute;inset:-5px 0}
+}
 /* intro : le symbole apparaît sur la grille du plan, la ligne de détection AR balaie, puis ARCHI (bleu nuit) et VISION (bleu → turquoise) s'écrivent */
 #splash{position:fixed;inset:0;z-index:60;background:#FAFBFC;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding-inline:24px;transition:opacity .55s ease,visibility .55s;font-family:var(--f-body)}
 #splash.done{opacity:0;visibility:hidden}
@@ -1083,6 +1100,7 @@ body[data-ar] #app{visibility:hidden}
   <button data-um="security"><b>Code PIN et sécurité</b><span>Code PIN du compte, empreinte ou visage (facultatif)</span></button>
   <button data-um="lock" id="umLock"><b>Verrouiller</b><span>Le code PIN sera demandé pour revenir</span></button>
   <button data-um="theme"><b>Thème clair / sombre</b><span>Change l'apparence de l'interface sur cet appareil</span></button>
+  <button data-um="settings" class="um-narrow"><b>Réglages</b><span>Thème, taille de l'interface, molette, qualité graphique…</span></button>
   <hr><button data-um="logout"><b>Se déconnecter</b><span>Sur cet appareil</span></button>
   <button data-um="delete" class="danger"><b>Supprimer mon compte</b><span>Sur le site Studio Prism, avec votre mot de passe et votre code PIN</span></button>
 </div>
@@ -2182,7 +2200,7 @@ document.addEventListener('click', e => { if (!um.hidden && !um.contains(e.targe
 $a('#licBadge').addEventListener('click', () => show('licence'));
 um.addEventListener('click', e => {
   const b = e.target.closest('[data-um]'); if (!b) return; um.hidden = true;
-  ({fiche:() => openClient(true), licence:() => show('licence'), home:() => showHome(), security:() => show('security'), lock:() => show('lock', {noAuto:false}), logout:signOutAll, delete:deleteAccount, theme:() => { const t = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; if (window.APTheme) window.APTheme(t); else { document.documentElement.dataset.theme = t; try { localStorage.setItem('av.theme', t); } catch(e){} } }})[b.dataset.um]();
+  ({settings:() => window.PrismSettings?.open(), fiche:() => openClient(true), licence:() => show('licence'), home:() => showHome(), security:() => show('security'), lock:() => show('lock', {noAuto:false}), logout:signOutAll, delete:deleteAccount, theme:() => { const t = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; if (window.APTheme) window.APTheme(t); else { document.documentElement.dataset.theme = t; try { localStorage.setItem('av.theme', t); } catch(e){} } }})[b.dataset.um]();
 });
 
 /* Suppression du compte : sur le site Studio Prism (même compte), avec confirmation par mot de passe puis code PIN */
@@ -2362,6 +2380,7 @@ function refreshMaterials(){
     o.castShadow = V.opts.shadows && V.style !== 'xray' && V.style !== 'wire';
     o.receiveShadow = V.opts.shadows && V.style === 'mat';
   }
+  if (typeof batchKey === 'function'){ if (batchKey() !== BATCH.key) batchSoon(); else batchLive(); }
   updateEdges(); markDirty();
 }
 function setStyle(s){ V.style = s; $$('#styleGrp [data-style]').forEach(b => b.setAttribute('aria-pressed', b.dataset.style === s)); refreshMaterials(); }
@@ -2390,6 +2409,7 @@ function setModel(root, rec){
   if (V.root){ pivot.remove(V.root); disposeObj(V.root); }
   STYLE_MATS.forEach(m => m.dispose()); STYLE_MATS.clear(); HL_MATS.forEach(m => m.dispose()); HL_MATS.clear();
   clearMeasures(); setSection(null);
+  if (typeof batchClear === 'function'){ batchClear(); BATCH.key = ''; }
   V.root = root; V.rec = rec; V.sel = null; V.selMeshes.clear(); V.meshes = []; V.tris = 0;
   root.traverse(o => {
     if (o.isMesh && !o.userData.__helper){
@@ -2461,7 +2481,7 @@ function focusObject(o){
 }
 
 /* ---------- Sélection ---------- */
-const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(); ray.layers.enableAll();   // voit aussi les objets fusionnés (calque 1)
 function pickAt(clientX, clientY){
   if (!V.root) return null;
   const r = canvas.getBoundingClientRect(); ndc.set((clientX - r.left) / r.width * 2 - 1, -(clientY - r.top) / r.height * 2 + 1);
@@ -2487,13 +2507,13 @@ function select(obj, {focus = false, from = 'view'} = {}){
 }
 
 /* ---------- Visibilité (hiérarchie) ---------- */
-function setVisible(o, v){ o.visible = v; markDirty(); }
+function setVisible(o, v){ o.visible = v; batchSoon(); markDirty(); }
 function isolate(o){
   V.root.traverse(x => { if (x !== V.root && !x.userData.__helper) x.visible = false; });
   for (let p = o; p && p !== V.root; p = p.parent) p.visible = true;
-  o.traverse(x => { if (!x.userData.__helper) x.visible = true; }); markDirty();
+  o.traverse(x => { if (!x.userData.__helper) x.visible = true; }); batchSoon(); markDirty();
 }
-function showAll(){ V.root?.traverse(x => { if (!x.userData.__helper || x.userData.__edges !== undefined) x.visible = true; }); updateEdges(); markDirty(); }
+function showAll(){ V.root?.traverse(x => { if (!x.userData.__helper || x.userData.__edges !== undefined) x.visible = true; }); updateEdges(); batchSoon(); markDirty(); }
 
 /* ---------- Boucle de rendu (à la demande hors AR) ---------- */
 let lastT = performance.now();
@@ -2503,7 +2523,7 @@ renderer.setAnimationLoop((now, xrFrame) => {
   stepFlight(now);
   for (const f of tickers) f(dt, now, xrFrame);
   if (V.tool === 'orbit' || V.tool === 'inspect' || V.tool === 'measure' || V.tool === 'section'){ if (controls.update()) V.dirty = Math.max(V.dirty, 1); }
-  if (renderer.xr.isPresenting || V.dirty > 0){ renderer.render(scene, camera); if (!renderer.xr.isPresenting) placeLabels(); V.dirty = Math.max(0, V.dirty - 1); }
+  if (renderer.xr.isPresenting || V.dirty > 0){ batchSync(); renderer.render(scene, camera); if (!renderer.xr.isPresenting) placeLabels(); V.dirty = Math.max(0, V.dirty - 1); }
 });
 
 /* ---------- Capture de la vue (HD) ---------- */
@@ -2512,7 +2532,7 @@ async function captureView({scale = 2, mime = 'image/jpeg', quality = 0.9, stamp
   const pr = Math.min(scale * 1, 4096 / Math.max(w0, h0)), sel = V.sel;
   if (sel) select(null);
   renderer.setPixelRatio(pr); renderer.setSize(w0, h0, false);
-  renderer.render(scene, camera);
+  batchSync(); renderer.render(scene, camera);
   const out = document.createElement('canvas'); out.width = canvas.width; out.height = canvas.height;
   const g = out.getContext('2d'); g.drawImage(canvas, 0, 0);
   renderer.setPixelRatio(pr0); renderer.setSize(w0, h0, false); if (sel) select(sel); markDirty();
@@ -2532,7 +2552,7 @@ async function thumbnail(){
   const st = V.style; if (st !== 'mat'){ V.style = 'mat'; refreshMaterials(); }
   const p0 = camera.position.clone(), t0 = controls.target.clone(); setView('iso', true);
   const w0 = canvas.clientWidth || 640, h0 = canvas.clientHeight || 400;
-  renderer.render(scene, camera);
+  batchSync(); renderer.render(scene, camera);
   const W = 480, H = 300, out = document.createElement('canvas'); out.width = W; out.height = H; const g = out.getContext('2d');
   const sw = canvas.width, sh = canvas.height, k = Math.max(W / sw, H / sh);
   g.fillStyle = '#F2F6F9'; g.fillRect(0, 0, W, H);
@@ -2541,6 +2561,90 @@ async function thumbnail(){
   if (st !== 'mat'){ V.style = st; refreshMaterials(); } if (sel) select(sel);
   markDirty(); void w0; void h0;
   return out.toDataURL('image/jpeg', 0.8);
+}
+
+/* ==== 21-batch.js ==== */
+/* ============ Affichage groupé : bien moins d'appels de dessin sur les grosses maquettes ============
+   Les pièces opaques visibles sont fusionnées par matériau, par paquets de BATCH_N objets, dans un groupe qui suit la
+   maquette (visite, unités, réalité augmentée). Les objets d'origine restent dans la maquette, avec leur visibilité, leurs
+   données BIM et la sélection ; ils passent seulement sur le calque de rendu 1, que la caméra ne dessine pas mais que les
+   rayons (sélection, mesure, marche) voient toujours. Le paquet qui contient la sélection est affiché en direct.
+   Transparents (vitrages, rayons X) jamais fusionnés. Regroupement refait quand la visibilité, le style ou les ombres changent. */
+const BATCH_N = 320, BATCH = {on:true, chunks:[], key:'', soon:false};
+const batchGrp = new THREE.Group(); batchGrp.name = 'affichage-groupe'; batchGrp.matrixAutoUpdate = false; scene.add(batchGrp);
+const BATCH_INV = new THREE.Matrix4(), BATCH_M = new THREE.Matrix4(), BATCH_N3 = new THREE.Matrix3(), BATCH_V = new THREE.Vector3();
+function batchClear(){
+  for (const ch of BATCH.chunks){ for (const o of ch.objs) o.geometry.dispose(); for (const m of ch.meshes) m.layers.set(0); }
+  batchGrp.clear(); BATCH.chunks = [];
+}
+const batchKey = () => V.style + '|' + V.opts.shadows;
+const batchSoon = () => { BATCH.soon = true; markDirty(); };
+function batchable(o, M){
+  if (o.isInstancedMesh || o.isSkinnedMesh || o.morphTargetInfluences || Array.isArray(M) || !M || M.transparent || M.visible === false) return false;
+  const g = o.geometry; return !!(g && g.attributes.position && !g.morphAttributes?.position && !g.groups?.length);
+}
+function batchMergeGeo(list){
+  const names = Object.keys(list[0].g.attributes); let n = 0;
+  for (const {g} of list) n += g.index ? g.index.count : g.attributes.position.count;
+  const out = {};
+  for (const k of names){ const a = list[0].g.attributes[k]; out[k] = {size:a.itemSize, arr:new Float32Array(n * a.itemSize)}; }
+  let at = 0;
+  for (const {g, m} of list){
+    const idx = g.index, c = idx ? idx.count : g.attributes.position.count;
+    for (const k of names){
+      const a = g.attributes[k], O = out[k], s = O.size;
+      for (let i = 0; i < c; i++){ const j = idx ? idx.getX(i) : i; for (let q = 0; q < s; q++) O.arr[(at + i) * s + q] = a.getComponent(j, q); }
+    }
+    BATCH_N3.getNormalMatrix(m);
+    const P = out.position.arr, N = out.normal?.arr;
+    for (let i = at; i < at + c; i++){
+      BATCH_V.fromArray(P, i * 3).applyMatrix4(m).toArray(P, i * 3);
+      if (N) BATCH_V.fromArray(N, i * 3).applyMatrix3(BATCH_N3).normalize().toArray(N, i * 3);
+    }
+    at += c;
+  }
+  const G = new THREE.BufferGeometry();
+  for (const k of names){ const a = list[0].g.attributes[k]; G.setAttribute(k, new THREE.BufferAttribute(out[k].arr, out[k].size, a.normalized)); }
+  G.computeBoundingSphere(); return G;
+}
+function batchBuild(){
+  BATCH.soon = false; batchClear(); BATCH.key = batchKey();
+  if (!BATCH.on || !V.root || !V.meshes.length) return;
+  V.root.updateWorldMatrix(true, true); BATCH_INV.copy(V.root.matrixWorld).invert();
+  const list = V.meshes.filter(o => isShown(o));
+  for (let i = 0; i < list.length; i += BATCH_N){
+    const ch = {meshes:[], objs:[], grp:new THREE.Group(), live:false}, buckets = new Map();
+    ch.grp.matrixAutoUpdate = false;
+    for (const o of list.slice(i, i + BATCH_N)){
+      const M = styleMat(o.userData.__orig);
+      if (!batchable(o, M)) continue;
+      const sig = Object.keys(o.geometry.attributes).sort().map(k => k + o.geometry.attributes[k].itemSize).join(',');
+      const key = M.uuid + '|' + (o.castShadow ? 1 : 0) + (o.receiveShadow ? 1 : 0) + '|' + sig;
+      let b = buckets.get(key); if (!b) buckets.set(key, b = {M, cast:o.castShadow, recv:o.receiveShadow, list:[]});
+      b.list.push({g:o.geometry, m:BATCH_M.clone().multiplyMatrices(BATCH_INV, o.matrixWorld)}); ch.meshes.push(o);
+    }
+    for (const b of buckets.values()){
+      const mesh = new THREE.Mesh(batchMergeGeo(b.list), b.M); mesh.castShadow = b.cast; mesh.receiveShadow = b.recv; mesh.raycast = () => {}; mesh.matrixAutoUpdate = false;
+      ch.grp.add(mesh); ch.objs.push(mesh);
+    }
+    for (const o of ch.meshes) o.layers.set(1);
+    batchGrp.add(ch.grp); BATCH.chunks.push(ch);
+  }
+  batchLive(); markDirty();
+}
+/* paquet contenant la sélection : objets d'origine affichés (surbrillance), paquet masqué */
+function batchLive(){
+  for (const ch of BATCH.chunks){
+    let live = false; for (const o of ch.meshes) if (V.selMeshes.has(o)){ live = true; break; }
+    if (live === ch.live) continue;
+    ch.live = live; ch.grp.visible = !live; for (const o of ch.meshes) o.layers.set(live ? 0 : 1);
+  }
+}
+/* avant chaque image : le groupe suit la maquette (unités, réalité augmentée) */
+function batchSync(){
+  if (BATCH.soon) batchBuild();
+  if (!V.root || !BATCH.chunks.length){ batchGrp.visible = false; return; }
+  batchGrp.visible = true; V.root.updateWorldMatrix(true, false); batchGrp.matrix.copy(V.root.matrixWorld); batchGrp.matrixWorldNeedsUpdate = true;
 }
 
 /* ==== 25-nav.js ==== */
@@ -2593,7 +2697,7 @@ function exitFirstPerson(){
   controls.target.copy(camera.position).add(d.multiplyScalar(Math.max(2, V.radius / 2))); controls.update();
 }
 function applyLook(){ camera.rotation.set(look.pitch, look.yaw, 0, 'YXZ'); markDirty(); }
-const downRay = new THREE.Raycaster();
+const downRay = new THREE.Raycaster(); downRay.layers.enableAll();   // sols fusionnés (calque 1) compris
 /* altitude du sol sous un point : premier élément visible sous les yeux (sols, escaliers), sinon 0 */
 function floorAt(p, from = p.y + 0.6){
   if (!V.meshes.length) return 0;
@@ -2740,7 +2844,7 @@ window.addEventListener('blur', () => keys.clear());
   const STEP = 0.95, v = new THREE.Vector3(); let pend = 0, raf = 0, last = 0;
   const tick = now => { const dt = Math.min(50, now - (last || now)); last = now;
     if (Math.abs(pend) < 1e-4 || !controls.enabled){ pend = 0; raf = 0; return; }
-    const part = pend * (1 - Math.exp(-dt / 55)); pend -= part;
+    const part = Math.abs(pend) < 2e-3 ? pend : pend * (1 - Math.exp(-dt / 55));   /* fin du glissement : on applique le reste, le pas par cran est exact */ pend -= part;
     const dist = camera.position.distanceTo(controls.target), nd = Math.max(controls.minDistance, Math.min(controls.maxDistance, dist * Math.exp(part)));
     v.subVectors(camera.position, controls.target).setLength(nd); camera.position.copy(controls.target).add(v); controls.update();
     raf = requestAnimationFrame(tick); };
@@ -3294,7 +3398,7 @@ async function arCaptureFrame(frame){
   pc.matrixWorld.copy(sub.matrixWorld); pc.matrixWorldInverse.copy(sub.matrixWorldInverse); pc.matrixAutoUpdate = false; pc.matrixWorldAutoUpdate = false;
   const rv = reticle.visible; reticle.visible = false;
   renderer.xr.enabled = false; const prevRT = renderer.getRenderTarget();
-  renderer.setRenderTarget(rt); renderer.setClearColor(0x000000, 0); renderer.clear(); renderer.render(scene, pc); renderer.setRenderTarget(prevRT);
+  renderer.setRenderTarget(rt); renderer.setClearColor(0x000000, 0); renderer.clear(); batchSync(); renderer.render(scene, pc); renderer.setRenderTarget(prevRT);
   renderer.xr.enabled = true; reticle.visible = rv;
   const px = new Uint8Array(W * H * 4); renderer.readRenderTargetPixels(rt, 0, 0, W, H, px); rt.dispose();
   const tmp = document.createElement('canvas'); tmp.width = W; tmp.height = H; tmp.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(px.buffer), W, H), 0, 0);
@@ -3501,7 +3605,7 @@ function leave(){ if (AR.session) AR.session.end(); }
 
 /* ---------- API pour l'accueil (script classique) ---------- */
 window.AVApp = {open, openSample, importFiles, leave, refreshGallery:() => { if (activeTab === 'gallery') renderGalleryTab(); }, state:() => ({tool:V.tool, mode:V.mode, style:V.style, name:V.rec?.name, meshes:V.meshes.length, tris:V.tris, size:V.size.toArray(), sel:V.sel ? objLabel(V.sel) : null, ar:AR.supported})};
-window.AVDebug = {V, AR, scene, camera, controls, select, elementOf, pickAt, setTool, setView, setStyle, objLabel, captureView, setSection, measures};
+window.AVDebug = {V, AR, scene, camera, controls, renderer, batch:on => { BATCH.on = !!on; batchBuild(); }, select, elementOf, pickAt, setTool, setView, setStyle, objLabel, captureView, setSection, measures};
 setTool('orbit'); setTab('tree'); $('#vpEmpty').hidden = false; prompt(TOOL_HINT.orbit);
 window.__apReady = true;
 window.dispatchEvent(new Event('ap:ready'));

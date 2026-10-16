@@ -14,7 +14,7 @@ document.addEventListener('click', e => { if (!um.hidden && !um.contains(e.targe
 $a('#licBadge').addEventListener('click', () => show('licence'));
 um.addEventListener('click', e => {
   const b = e.target.closest('[data-um]'); if (!b) return; um.hidden = true;
-  ({fiche:() => openClient(true), licence:() => show('licence'), home:() => showHome(), security:() => show('security'), lock:() => show('lock', {noAuto:false}), logout:signOutAll, delete:deleteAccount, theme:() => { const t = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; if (window.APTheme) window.APTheme(t); else { document.documentElement.dataset.theme = t; try { localStorage.setItem('av.theme', t); } catch(e){} } }})[b.dataset.um]();
+  ({settings:() => window.PrismSettings?.open(), fiche:() => openClient(true), licence:() => show('licence'), home:() => showHome(), security:() => show('security'), lock:() => show('lock', {noAuto:false}), logout:signOutAll, delete:deleteAccount, theme:() => { const t = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; if (window.APTheme) window.APTheme(t); else { document.documentElement.dataset.theme = t; try { localStorage.setItem('av.theme', t); } catch(e){} } }})[b.dataset.um]();
 });
 
 /* Suppression du compte : sur le site Studio Prism (même compte), avec confirmation par mot de passe puis code PIN */
