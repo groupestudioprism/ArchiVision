@@ -2,3 +2,9 @@ dist/
 __pycache__/
 *.pyc
 .DS_Store
+
+# Jamais de secrets dans ce dépôt
+.env*
+*serviceAccount*.json
+*-adminsdk-*.json
+*.pem
