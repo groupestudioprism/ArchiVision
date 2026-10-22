@@ -142,5 +142,5 @@ setTool('orbit'); setTab('tree'); $('#vpEmpty').hidden = false; prompt(TOOL_HINT
 window.__apReady = true;
 window.dispatchEvent(new Event('ap:ready'));
 /* fin de l'intro : retirée ici aussi quand la session est restaurée sans passer par l'écran de compte (même principe qu'ARCHITRAFIC) */
-(() => { const sp = document.getElementById('splash'); if (!sp) return; const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  setTimeout(() => { sp.classList.add('done'); setTimeout(() => sp.remove(), 600); }, Math.max(reduce ? 300 : 0, (reduce ? 600 : 3000) - performance.now())); })();
+(() => { const sp = document.getElementById('splash'); if (!sp) return; // durée minimale et sortie : js/intro.js
+  if (window.__spIntro) window.__spIntro.request(); else setTimeout(() => { sp.classList.add('done'); setTimeout(() => sp.remove(), 600); }, 600); })();

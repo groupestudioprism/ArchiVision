@@ -498,31 +498,59 @@ body[data-mode="sec"] .vtools,body[data-mode="sec"] .hud,body[data-mode="sec"] .
   .status button::after{content:"";position:absolute;inset:-7px -1px}
   .modes button::after,.vgrp button::after{content:"";position:absolute;inset:-5px 0}
 }
-/* intro : le symbole apparaît sur la grille du plan, la ligne de détection AR balaie, puis ARCHI (bleu nuit) et VISION (bleu → turquoise) s'écrivent */
-#splash{position:fixed;inset:0;z-index:60;background:#FAFBFC;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding-inline:24px;transition:opacity .55s ease,visibility .55s;font-family:var(--f-body)}
-#splash.done{opacity:0;visibility:hidden}
-:root[data-theme="dark"] #splash{background:#0E1320}
+/* intro ARCHIVISION : sur la grille du plan, un bâtiment se trace puis se construit en fil de fer, se pose en maquette ; une ligne de détection AR balaie et révèle l'emblème officiel (ses points d'ancrage se posent un à un), puis ARCHI / VISION s'écrivent.
+   Sans JS (ou animation désactivée) l'état de base ci-dessous EST l'état final : emblème, mot, ligne de signature, barre. La scène (js/intro.js) n'est jouée que sous .sp-anim. */
+#splash{position:fixed;inset:0;z-index:60;background:#FAFBFC;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding-inline:24px;transition:opacity .45s ease,visibility .45s;font-family:var(--f-body);--sp-l:#1B4C76;--sp-ac:#2A7C93;--sp-ac2:#3AA393;--sp-fl:#1B4C76;--sp-fr:#2A7C93;--sp-ft:#3AA393;animation:spGuard .01s 40s forwards}
+#splash:has(.sp-msg.err){animation:none}
+#splash.done{opacity:0;visibility:hidden;pointer-events:none}
+:root[data-theme="dark"] #splash{background:#0E1320;--sp-l:#8DB8E6;--sp-ac:#3AA393;--sp-ac2:#6FD0C0}
 .sp-stage{position:relative;display:grid;grid-template-columns:auto auto;grid-template-rows:auto auto auto;column-gap:clamp(14px,3vw,30px);align-items:center;width:min(760px,92vw)}
-.sp-grid{position:absolute;inset:-30% -12%;background-image:linear-gradient(#1B4C7614 1px,transparent 1px),linear-gradient(90deg,#1B4C7614 1px,transparent 1px);background-size:28px 28px;-webkit-mask:radial-gradient(closest-side,#000 40%,transparent);mask:radial-gradient(closest-side,#000 40%,transparent);opacity:0;animation:spFade .8s .05s ease forwards}
-.sp-mark{grid-row:1 / span 3;width:clamp(96px,22vw,190px);height:auto;opacity:0;transform:translateY(10px) scale(.94);animation:spIn .9s .15s cubic-bezier(.2,.8,.2,1) forwards;position:relative}
+.sp-grid{position:absolute;inset:-30% -12%;background-image:linear-gradient(#1B4C7614 1px,transparent 1px),linear-gradient(90deg,#1B4C7614 1px,transparent 1px);background-size:28px 28px;-webkit-mask:radial-gradient(closest-side,#000 40%,transparent);mask:radial-gradient(closest-side,#000 40%,transparent)}
+:root[data-theme="dark"] .sp-grid{background-image:linear-gradient(#8DB8E61A 1px,transparent 1px),linear-gradient(90deg,#8DB8E61A 1px,transparent 1px)}
+.sp-fig{grid-row:1 / span 3;position:relative;width:clamp(96px,22vw,190px);aspect-ratio:320/271}
+.sp-mark{display:block;width:100%;height:auto;position:relative}
 .sp-word{font:900 clamp(34px,7.4vw,76px)/1 "Montserrat",var(--f-display);letter-spacing:.01em;display:flex;position:relative;align-self:end}
-.sp-word b{display:inline-block;background:linear-gradient(90deg,#0B1F45,#14365F 60%,#1B4C76);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;clip-path:inset(0 100% 0 0);animation:spWrite .7s .75s cubic-bezier(.6,0,.2,1) forwards}
-.sp-word b.t{background-image:linear-gradient(90deg,#1F5A86,#2A7C93 55%,#3AA393);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;animation-delay:1.25s}
+.sp-word b{display:inline-block;background:linear-gradient(90deg,#0B1F45,#14365F 60%,#1B4C76);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+.sp-word b.t{background-image:linear-gradient(90deg,#1F5A86,#2A7C93 55%,#3AA393);-webkit-background-clip:text;background-clip:text}
 :root[data-theme="dark"] .sp-word b:not(.t){background:linear-gradient(90deg,#CFE0FA,#A9C8EE 55%,#8DB8E6);-webkit-background-clip:text;background-clip:text}
-.sp-tag{margin:8px 0 0;font:500 clamp(12px,1.9vw,17px)/1.3 var(--f-body);letter-spacing:.06em;color:#24324F;opacity:0;animation:spFade .6s 1.8s ease forwards;position:relative}
+.sp-tag{margin:8px 0 0;font:500 clamp(12px,1.9vw,17px)/1.3 var(--f-body);letter-spacing:.06em;color:#24324F;position:relative}
 :root[data-theme="dark"] .sp-tag{color:#B7C3D8}
 .sp-road{position:relative;height:6px;border-radius:3px;background:#E6EBF1;overflow:hidden;margin-top:14px;grid-column:2}
 :root[data-theme="dark"] .sp-road{background:#1F2838}
-.sp-road i{position:absolute;inset:0;background:repeating-linear-gradient(90deg,#14365F 0 22px,transparent 22px 30px,#3AA393 30px 52px,transparent 52px 60px);background-size:120px 100%;width:0;animation:spRoad 2.6s .4s ease forwards,spDash 1s linear infinite}
+.sp-road i{position:absolute;inset:0;background:repeating-linear-gradient(90deg,#14365F 0 22px,transparent 22px 30px,#3AA393 30px 52px,transparent 52px 60px);background-size:120px 100%;width:100%}
 .sp-msg{margin:0;font-size:13px;color:#56637C;min-height:1.3em;text-align:center}
+:root[data-theme="dark"] .sp-msg{color:#9FB0CA}
 .sp-msg.err{color:#B3261E;font-weight:600}
-@keyframes spIn{to{opacity:1;transform:none}}
-@keyframes spFade{to{opacity:1}}
-@keyframes spWrite{to{clip-path:inset(0 0 0 0)}}
-@keyframes spRoad{to{width:100%}}
+:root[data-theme="dark"] .sp-msg.err{color:#FF8A80}
+/* bouton « Passer l'animation » */
+.sp-skip{position:absolute;right:max(14px,env(safe-area-inset-right));bottom:max(14px,env(safe-area-inset-bottom));font:600 13px/1 var(--f-body);color:#14365F;background:#FFFFFFE6;border:1px solid #1B4C7666;border-radius:999px;padding:10px 16px;min-height:40px;cursor:pointer}
+.sp-skip:hover{background:#fff;border-color:#1B4C76}
+.sp-skip:focus-visible{outline:2px solid #2A7C93;outline-offset:2px}
+:root[data-theme="dark"] .sp-skip{color:#CFE0FA;background:#1A2336E6;border-color:#8DB8E688}
+:root[data-theme="dark"] .sp-skip:hover{background:#243049}
+/* scène (créée par js/intro.js) */
+.sp-anim .sp-grid,.sp-anim .sp-word b,.sp-anim .sp-tag{opacity:0}
+.sp-anim .sp-mark{visibility:hidden}
+.sp-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.sp-l{fill:none;stroke:var(--sp-l);stroke-width:2;stroke-linejoin:round;stroke-linecap:butt}
+.sp-l.h{opacity:.38;stroke-width:1.5}
+.sp-l.cl{opacity:.45;stroke-width:1.2}
+.sp-l.rib{opacity:.55;stroke-width:1.3}
+.sp-l.pt{stroke:var(--sp-ac);stroke-width:1.6}
+.sp-fl{fill:var(--sp-fl);opacity:0}.sp-fr{fill:var(--sp-fr);opacity:0}.sp-ft{fill:var(--sp-ft);opacity:0}.sp-fg{fill:var(--sp-ac2);opacity:0}
+.sp-br{fill:none;stroke:var(--sp-ac);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;opacity:0;transform-origin:160px 135.5px}
+.sp-lay{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+.sp-scan{position:absolute;left:0;top:-7%;bottom:-7%;width:100%;pointer-events:none;border-right:2px solid var(--sp-ac2);background:linear-gradient(90deg,transparent,#3AA39338);opacity:0}
+.sp-dot{position:absolute;width:5.3125%;aspect-ratio:1;transform:translate(-50%,-50%);pointer-events:none}
+.sp-dot i{position:absolute;inset:0;border-radius:50%;background:url(assets/emblem-320.webp) no-repeat;background-size:1882.35% auto;opacity:0}
+.sp-dot b{position:absolute;inset:-2px;border-radius:50%;border:1.5px solid var(--sp-ac2);opacity:0}
+.sp-rm .sp-stage,.sp-seen .sp-stage{animation:spFade .15s linear both}
+.sp-anim .sp-road i{animation:spDash 1s linear infinite}
+@keyframes spFade{from{opacity:0}to{opacity:1}}
 @keyframes spDash{to{background-position:120px 0}}
-@media (max-width:560px){.sp-stage{grid-template-columns:1fr;justify-items:center;text-align:center}.sp-mark{grid-row:auto;margin-bottom:10px}.sp-road{grid-column:1;width:80%}}
-@media (prefers-reduced-motion:reduce){.sp-mark,.sp-word b,.sp-tag,.sp-grid{animation:none;opacity:1;transform:none;clip-path:none}.sp-road i{animation:none;width:100%}}
+@keyframes spGuard{to{opacity:0;visibility:hidden;pointer-events:none}}
+@media (max-width:560px){.sp-stage{grid-template-columns:1fr;justify-items:center;text-align:center}.sp-fig{grid-row:auto;width:clamp(150px,46vw,190px);margin-bottom:10px}.sp-road{grid-column:1;width:80%}}
+@media (prefers-reduced-motion:reduce){.sp-skip{display:none}}
 /* ===== Compte Studio Prism : connexion, fiche client, code PIN — écran volontairement clair, comme le logo ===== */
 #auth[hidden]{display:none!important}
 #auth{position:fixed;inset:0;z-index:55;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);background:#FFFFFF;color:#0F1B33;color-scheme:light;font-family:var(--f-body);overflow:auto}
@@ -978,17 +1006,220 @@ body[data-ar] #app{visibility:hidden}
   .joy{bottom:76px;left:14px;width:104px;height:104px}
 }
 </style>
-
 <div id="splash" role="status" aria-live="polite">
   <div class="sp-stage" role="img" aria-label="ARCHIVISION, architecture en réalité augmentée">
     <div class="sp-grid"></div>
-    <img class="sp-mark" src="assets/emblem-320.webp" alt="" width="320" height="271">
+    <div class="sp-fig"><img class="sp-mark" src="assets/emblem-320.webp" alt="" width="320" height="271"></div>
     <div class="sp-word"><b>ARCHI</b><b class="t">VISION</b></div>
     <p class="sp-tag">Architecture en réalité augmentée</p>
     <div class="sp-road" aria-hidden="true"><i></i></div>
   </div>
   <p class="sp-msg" id="spMsg">Ouverture des maquettes…</p>
+  <button type="button" class="sp-skip" hidden>Passer l'animation</button>
 </div>
+<script>
+/* Intro ARCHIVISION : la maquette prend vie.
+   Un bâtiment se trace sur la grille du plan (emprise, fondations, murs, planchers), se pose en maquette, puis une ligne de détection AR balaie : derrière elle l'emblème OFFICIEL (assets/emblem-320.webp) se révèle et ses
+   points d'ancrage se posent un à un ; ARCHI / VISION s'écrivent, la ligne de signature apparaît. Dernière image = écran de chargement stable (emblème officiel intact, barre, message #spMsg).
+   Animations Web Animations API / CSS : déterministes, pausables, seekables. Aucune boucle rAF, aucun son.
+   Contrat avec le reste de l'app : window.__spIntro.request() = « l'app peut fermer l'intro » ; la durée minimale (scène ≈ 3 s depuis le premier affichage) et la sortie (fondu 450 ms) sont gérées ici.
+   ?intro=1 force le rejeu ; sinon une seule fois par session de navigation (sessionStorage 'prism-intro-archivision'). */
+(function () {
+  'use strict';
+  var sp = document.getElementById('splash');
+  if (!sp) return;
+  var KEY = 'prism-intro-archivision', SCENE = 2900, HOLD_REDUCED = 600, HOLD_SEEN = 500, SKIP_HOLD = 250, EXIT = 450;
+  var EIN = 'cubic-bezier(.22,.8,.2,1)', EIO = 'cubic-bezier(.65,0,.35,1)', EM = 'cubic-bezier(.4,0,.2,1)';
+  var anims = [], closed = false, requested = false, tStart = 0, endAt = 0, timer = 0, mode = 'scene';
+  var q = function (s) { return sp.querySelector(s); };
+
+  var reduce = false, force = false, seen = false;
+  try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  try { force = /[?&]intro=1(&|$)/.test(location.search); } catch (e) {}
+  try { seen = sessionStorage.getItem(KEY) === '1'; } catch (e) {}
+  if (reduce) mode = 'reduced'; else if (seen && !force) mode = 'seen';
+
+  function A(el, kf, delay, dur, ease, fill) {
+    var a = el.animate(kf, { delay: delay, duration: dur, easing: ease || EIN, fill: fill || 'both' });
+    anims.push(a); return a;
+  }
+  function el(tag, cls, svg) {
+    var n = svg ? document.createElementNS('http://www.w3.org/2000/svg', tag) : document.createElement(tag);
+    if (cls) n.setAttribute('class', cls); return n;
+  }
+
+  /* ---- clôture : fondu 450 ms puis retrait du DOM ---- */
+  function schedule() {
+    if (closed || !requested || !tStart) return;
+    clearTimeout(timer);
+    timer = setTimeout(finish, Math.max(0, endAt - performance.now()));
+  }
+  function finish() {
+    if (closed) return; closed = true; clearTimeout(timer);
+    sp.classList.add('done');
+    document.removeEventListener('keydown', onKey, true);
+    try { var a = document.activeElement; if (a && sp.contains(a)) a.blur(); } catch (e) {}
+    setTimeout(function () { settle(); if (sp.parentNode) sp.remove(); }, EXIT + 30);
+  }
+  function settle() { // état final statique, sans animation en cours
+    sp.classList.remove('sp-anim');
+    anims.forEach(function (a) { try { a.cancel(); } catch (e) {} });
+    try { sp.getAnimations({ subtree: true }).forEach(function (a) { if (a.effect && a.effect.target && !a.effect.target.closest('.sp-stage')) return; try { a.cancel(); } catch (e) {} }); } catch (e) {}
+    anims = [];
+    [].slice.call(sp.querySelectorAll('.sp-svg,.sp-lay,.sp-scan,.sp-dot')).forEach(function (n) { n.remove(); });
+    var b = q('.sp-skip'); if (b) b.hidden = true;
+  }
+  function skip() {
+    if (closed || mode !== 'scene' || skipped) return; skipped = true;
+    settle();
+    endAt = performance.now() + SKIP_HOLD; schedule();
+  }
+  var skipped = false;
+  function onKey(e) { // tant que la scène joue, l'écran d'ouverture couvre tout : Échap et Entrée la passent
+    if (closed || mode !== 'scene' || skipped) return;
+    if (e.key === 'Escape' || e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); skip(); }
+  }
+
+  window.__spIntro = {
+    request: function () { requested = true; schedule(); },
+    skip: skip,
+    get mode() { return mode; }
+  };
+
+  /* ---- départ de l'horloge : premier cadre affiché ---- */
+  function begin() {
+    if (tStart) return;
+    tStart = performance.now();
+    endAt = tStart + (mode === 'scene' ? SCENE : mode === 'reduced' ? HOLD_REDUCED : HOLD_SEEN);
+    schedule();
+    setTimeout(function () { // garde-fou : l'intro ne reste jamais indéfiniment (sauf message d'erreur de chargement)
+      if (!closed && !q('.sp-msg.err')) { requested = true; endAt = 0; schedule(); }
+    }, 16000);
+  }
+  try { requestAnimationFrame(function () { begin(); }); } catch (e) {}
+  setTimeout(begin, 1500);
+
+  if (mode === 'reduced') { sp.classList.add('sp-rm'); return; }
+  if (mode === 'seen') { sp.classList.add('sp-seen'); return; }
+
+  try { sessionStorage.setItem(KEY, '1'); } catch (e) {}
+
+  /* ---- scène ---- */
+  try {
+    var fig = q('.sp-fig'), stage = q('.sp-stage');
+    sp.classList.add('sp-anim');
+
+    // projection isométrique du bâtiment (repère de l'emblème : 320 × 271)
+    var S = 76, H = 1.1, M = H / 2, U = 1.5, V = 1;
+    function P(u, v, z) { return [160 + (u - v) * 0.866 * S, 118 + (u + v) * 0.5 * S - z * S]; }
+    function pts(a) { return a.map(function (p) { return p[0].toFixed(1) + ' ' + p[1].toFixed(1); }); }
+    function len(a) { var L = 0; for (var i = 1; i < a.length; i++) L += Math.hypot(a[i][0] - a[i - 1][0], a[i][1] - a[i - 1][1]); return L; }
+
+    var bld = el('svg', 'sp-svg', true); bld.setAttribute('viewBox', '0 0 320 271'); bld.setAttribute('aria-hidden', 'true');
+    var hud = el('svg', 'sp-svg', true); hud.setAttribute('viewBox', '0 0 320 271'); hud.setAttribute('aria-hidden', 'true');
+    var gG = el('g', '', true), gV = el('g', '', true); bld.appendChild(gG); bld.appendChild(gV);
+
+    // trait : tracé progressif (stroke-dashoffset) ; chaque tracé suit exactement son chemin
+    function line(parent, cls, a, delay, dur, ease, close) {
+      var p = el('path', 'sp-l ' + cls, true), pa = close ? a.concat([a[0]]) : a, L = len(pa);
+      p.setAttribute('d', 'M' + pts(pa).join('L'));
+      p.style.strokeDasharray = L.toFixed(1); p.style.strokeDashoffset = L.toFixed(1);
+      parent.appendChild(p);
+      A(p, [{ strokeDashoffset: L.toFixed(1) }, { strokeDashoffset: 0 }], delay, dur, ease || EIO);
+      return p;
+    }
+    function face(parent, cls, a, delay, dur, to) {
+      var p = el('path', cls, true); p.setAttribute('d', 'M' + pts(a).join('L') + 'Z'); parent.appendChild(p);
+      A(p, [{ opacity: 0 }, { opacity: to }], delay, dur, EIN); return p;
+    }
+    var b0 = P(0, 0, 0), bL = P(0, V, 0), bF = P(U, V, 0), bR = P(U, 0, 0);
+    var t0 = P(0, 0, H), tL = P(0, V, H), tF = P(U, V, H), tR = P(U, 0, H);
+    var m0 = P(0, 0, M), mL = P(0, V, M), mF = P(U, V, M), mR = P(U, 0, M);
+
+    // 1. repères de construction qui prolongent l'emprise, puis emprise tracée au sol
+    var ext = 0.28;
+    [[bL, P(-ext, V, 0), P(0, V + ext, 0)], [bF, P(U + ext, V, 0), P(U, V + ext, 0)], [bR, P(U + ext, 0, 0), P(U, -ext, 0)], [b0, P(-ext, 0, 0), P(0, -ext, 0)]].forEach(function (c, i) {
+      line(gG, 'cl', [c[1], c[0], c[2]], 140 + i * 50, 380, EIN);
+    });
+    face(gG, 'sp-fg', [bL, bF, bR, b0], 1300, 320, 0.13);
+    line(gG, '', [bL, bF, bR], 200, 480, EIO);
+    line(gG, 'h', [bR, b0, bL], 360, 380, EIO);
+    // 2. fondations : dalle d'épaisseur 0,07
+    var sl = 0.07, sL = P(0, V, -sl), sF = P(U, V, -sl), sR = P(U, 0, -sl);
+    line(gV, '', [bL, sL, sF, sR, bR], 480, 360, EIO);
+    line(gV, '', [bF, sF], 520, 200, EIO);
+    // 3. murs : les arêtes montent depuis le sol
+    line(gV, 'h', [b0, t0], 700, 420, EM);
+    line(gV, '', [bL, tL], 640, 420, EM);
+    line(gV, '', [bF, tF], 700, 420, EM);
+    line(gV, '', [bR, tR], 760, 420, EM);
+    // 4. plancher intermédiaire puis toiture
+    line(gV, '', [mL, mF, mR], 900, 300, EIO); line(gV, 'h', [mR, m0, mL], 960, 260, EIO);
+    line(gV, '', [tL, tF, tR], 1050, 340, EIO); line(gV, 'h', [tR, t0, tL], 1120, 280, EIO);
+    // 5. cloisons du plan (au sol, couleur d'accent) et trames de façade
+    line(gV, 'pt', [P(0.6, 0, 0), P(0.6, 0.55, 0), P(U, 0.55, 0)], 1000, 360, EIO);
+    line(gV, 'pt', [P(0.6, 0.55, 0), P(0.6, V, 0)], 1100, 220, EIO);
+    [0.5, 1.0].forEach(function (u, i) { line(gV, 'rib', [P(u, V, 0), P(u, V, H)], 1150 + i * 70, 300, EIO); });
+    [1 / 3, 2 / 3].forEach(function (v, i) { line(gV, 'rib', [P(U, v, 0), P(U, v, H)], 1220 + i * 70, 300, EIO); });
+    // 6. la maquette se pose : faces teintées
+    face(gV, 'sp-fl', [bL, bF, tF, tL], 1300, 320, 0.14);
+    face(gV, 'sp-fr', [bF, bR, tR, tF], 1340, 320, 0.17);
+    face(gV, 'sp-ft', [tL, tF, tR, t0], 1380, 320, 0.20);
+
+    // repères d'angle « verrouillés » autour de l'emblème
+    var gH = el('g', '', true), arm = 26, o = -14, X1 = 320 - o, Y1 = 271 - o;
+    [['M' + o + ' ' + (o + arm) + 'V' + o + 'H' + (o + arm)], ['M' + (X1 - arm) + ' ' + o + 'H' + X1 + 'V' + (o + arm)], ['M' + X1 + ' ' + (Y1 - arm) + 'V' + Y1 + 'H' + (X1 - arm)], ['M' + (o + arm) + ' ' + Y1 + 'H' + o + 'V' + (Y1 - arm)]].forEach(function (d) {
+      var p = el('path', 'sp-br', true); p.setAttribute('d', d[0]); gH.appendChild(p);
+      A(p, [{ opacity: 0, transform: 'scale(1.16)' }, { opacity: 1, transform: 'scale(1)' }], 1300, 360, EIN);
+      A(p, [{ opacity: 1 }, { opacity: 0 }], 2520, 300, EM, 'forwards');
+    });
+    hud.appendChild(gH);
+
+    // calques HTML : emblème officiel sans points d'ancrage (révélé par le balayage) ; points d'ancrage posés un à un
+    var lay = el('img', 'sp-lay'); lay.src = 'assets/emblem-320-sans-points.webp'; lay.alt = ''; lay.setAttribute('aria-hidden', 'true'); lay.decoding = 'async';
+    var scan = el('i', 'sp-scan'); scan.setAttribute('aria-hidden', 'true');
+    var SW = 1500, SD = 620;
+    A(lay, [{ clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0 0 0)' }], SW, SD, EIO);
+    A(bld, [{ clipPath: 'inset(-60% -60% -60% 0%)' }, { clipPath: 'inset(-60% -60% -60% 100%)' }], SW, SD, EIO);
+    A(scan, [{ transform: 'translateX(-100%)', opacity: 0 }, { opacity: 1, offset: .08 }, { opacity: 1, offset: .88 }, { transform: 'translateX(0)', opacity: 0 }], SW - 40, SD + 40, EIO);
+
+    fig.insertBefore(bld, fig.firstChild);
+    fig.insertBefore(lay, q('.sp-mark'));
+    fig.appendChild(scan); fig.appendChild(hud);
+
+    var dots = [[6.5, 137.5], [6.5, 257.5], [186.2, 7], [219, 264.5], [281.5, 30.5], [294, 246], [311.7, 70]];
+    dots.forEach(function (d, i) {
+      var w = el('span', 'sp-dot'), c = el('i'), r = el('b'), t = 1750 + i * 85;
+      w.style.left = (d[0] / 320 * 100) + '%'; w.style.top = (d[1] / 271 * 100) + '%';
+      c.style.backgroundPosition = ((d[0] - 8.5) / 303 * 100) + '% ' + ((d[1] - 8.5) / 254 * 100) + '%';
+      w.appendChild(c); w.appendChild(r); w.setAttribute('aria-hidden', 'true'); fig.appendChild(w);
+      A(c, [{ opacity: 0, transform: 'scale(.15)' }, { opacity: 1, transform: 'scale(1)' }], t, 260, EIN);
+      A(c, [{ opacity: 1 }, { opacity: 0 }], 2500, 1, 'steps(1,end)', 'forwards'); // relais par l'emblème intact, au même cadre
+      A(r, [{ opacity: .9, transform: 'scale(.6)' }, { opacity: 0, transform: 'scale(2.6)' }], t + 40, 460, EIN, 'forwards');
+    });
+    // l'emblème officiel intact prend le relais (même image, même position) : état final strictement identique
+    A(q('.sp-mark'), [{ visibility: 'hidden' }, { visibility: 'visible' }], 2500, 1, 'steps(1,end)');
+    A(lay, [{ opacity: 1 }, { opacity: 0 }], 2500, 1, 'steps(1,end)', 'forwards');
+
+    // environnement, mot, signature
+    A(q('.sp-grid'), [{ opacity: 0 }, { opacity: 1 }], 50, 700, EIN);
+    var w1 = q('.sp-word b'), w2 = q('.sp-word b.t');
+    A(w1, [{ opacity: 1, clipPath: 'inset(0 100% 0 0)' }, { opacity: 1, clipPath: 'inset(0 0% 0 0)' }], 1800, 480, EIO);
+    A(w2, [{ opacity: 1, clipPath: 'inset(0 100% 0 0)' }, { opacity: 1, clipPath: 'inset(0 0% 0 0)' }], 2060, 480, EIO);
+    A(q('.sp-tag'), [{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], 2350, 380, EIN);
+    A(q('.sp-road i'), [{ width: '0%' }, { width: '100%' }], 300, 2500, EM);
+
+    // bouton « Passer l'animation »
+    var sb = q('.sp-skip'); sb.hidden = false; sb.addEventListener('click', skip);
+    try { sb.focus({ preventScroll: true }); } catch (e) {}
+    document.addEventListener('keydown', onKey, true);
+    anims[anims.length - 1].finished.then(function () { if (!closed && !skipped) sb.hidden = true; }, function () {});
+  } catch (err) { // la scène ne doit jamais bloquer : on retombe sur l'état final statique
+    try { console.warn('intro ARCHIVISION : ' + err); } catch (e) {}
+    settle();
+  }
+})();
+</script>
 <div id="auth" hidden>
   <aside class="ap-side">
     <div class="ap-logo" role="img" aria-label="ARCHIVISION, architecture en réalité augmentée"></div>
@@ -1749,8 +1980,8 @@ function afterIntro(){ return new Promise(res => { const t0 = performance.now();
   if ((!sp || sp.classList.contains('done')) && ready) setTimeout(res, sp ? 700 : 250); else setTimeout(tick, 120); }; tick(); }); }
 function hideSplashSoon(){ // l'écran de compte n'attend pas le moteur 3D
   if (splashT) return; const sp = $a('#splash'); if (!sp) return;
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  splashT = setTimeout(() => { sp.classList.add('done'); setTimeout(() => sp.remove(), 600); }, Math.max(0, (reduce ? 600 : 2900) - performance.now()));
+  splashT = 1; // la durée minimale de l'intro et la sortie sont gérées par js/intro.js (repli : fermeture immédiate)
+  if (window.__spIntro) window.__spIntro.request(); else { sp.classList.add('done'); setTimeout(() => sp.remove(), 600); }
 }
 function show(name, opts = {}){
   if (name !== 'loading') hideSplashSoon();
@@ -3611,8 +3842,8 @@ setTool('orbit'); setTab('tree'); $('#vpEmpty').hidden = false; prompt(TOOL_HINT
 window.__apReady = true;
 window.dispatchEvent(new Event('ap:ready'));
 /* fin de l'intro : retirée ici aussi quand la session est restaurée sans passer par l'écran de compte (même principe qu'ARCHITRAFIC) */
-(() => { const sp = document.getElementById('splash'); if (!sp) return; const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  setTimeout(() => { sp.classList.add('done'); setTimeout(() => sp.remove(), 600); }, Math.max(reduce ? 300 : 0, (reduce ? 600 : 3000) - performance.now())); })();
+(() => { const sp = document.getElementById('splash'); if (!sp) return; // durée minimale et sortie : js/intro.js
+  if (window.__spIntro) window.__spIntro.request(); else setTimeout(() => { sp.classList.add('done'); setTimeout(() => sp.remove(), 600); }, 600); })();
 
 </script>
 </body></html>

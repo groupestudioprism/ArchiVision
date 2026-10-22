@@ -1,25 +1,53 @@
-/* intro : le symbole apparaît sur la grille du plan, la ligne de détection AR balaie, puis ARCHI (bleu nuit) et VISION (bleu → turquoise) s'écrivent */
-#splash{position:fixed;inset:0;z-index:60;background:#FAFBFC;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding-inline:24px;transition:opacity .55s ease,visibility .55s;font-family:var(--f-body)}
-#splash.done{opacity:0;visibility:hidden}
-:root[data-theme="dark"] #splash{background:#0E1320}
+/* intro ARCHIVISION : sur la grille du plan, un bâtiment se trace puis se construit en fil de fer, se pose en maquette ; une ligne de détection AR balaie et révèle l'emblème officiel (ses points d'ancrage se posent un à un), puis ARCHI / VISION s'écrivent.
+   Sans JS (ou animation désactivée) l'état de base ci-dessous EST l'état final : emblème, mot, ligne de signature, barre. La scène (js/intro.js) n'est jouée que sous .sp-anim. */
+#splash{position:fixed;inset:0;z-index:60;background:#FAFBFC;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding-inline:24px;transition:opacity .45s ease,visibility .45s;font-family:var(--f-body);--sp-l:#1B4C76;--sp-ac:#2A7C93;--sp-ac2:#3AA393;--sp-fl:#1B4C76;--sp-fr:#2A7C93;--sp-ft:#3AA393;animation:spGuard .01s 40s forwards}
+#splash:has(.sp-msg.err){animation:none}
+#splash.done{opacity:0;visibility:hidden;pointer-events:none}
+:root[data-theme="dark"] #splash{background:#0E1320;--sp-l:#8DB8E6;--sp-ac:#3AA393;--sp-ac2:#6FD0C0}
 .sp-stage{position:relative;display:grid;grid-template-columns:auto auto;grid-template-rows:auto auto auto;column-gap:clamp(14px,3vw,30px);align-items:center;width:min(760px,92vw)}
-.sp-grid{position:absolute;inset:-30% -12%;background-image:linear-gradient(#1B4C7614 1px,transparent 1px),linear-gradient(90deg,#1B4C7614 1px,transparent 1px);background-size:28px 28px;-webkit-mask:radial-gradient(closest-side,#000 40%,transparent);mask:radial-gradient(closest-side,#000 40%,transparent);opacity:0;animation:spFade .8s .05s ease forwards}
-.sp-mark{grid-row:1 / span 3;width:clamp(96px,22vw,190px);height:auto;opacity:0;transform:translateY(10px) scale(.94);animation:spIn .9s .15s cubic-bezier(.2,.8,.2,1) forwards;position:relative}
+.sp-grid{position:absolute;inset:-30% -12%;background-image:linear-gradient(#1B4C7614 1px,transparent 1px),linear-gradient(90deg,#1B4C7614 1px,transparent 1px);background-size:28px 28px;-webkit-mask:radial-gradient(closest-side,#000 40%,transparent);mask:radial-gradient(closest-side,#000 40%,transparent)}
+:root[data-theme="dark"] .sp-grid{background-image:linear-gradient(#8DB8E61A 1px,transparent 1px),linear-gradient(90deg,#8DB8E61A 1px,transparent 1px)}
+.sp-fig{grid-row:1 / span 3;position:relative;width:clamp(96px,22vw,190px);aspect-ratio:320/271}
+.sp-mark{display:block;width:100%;height:auto;position:relative}
 .sp-word{font:900 clamp(34px,7.4vw,76px)/1 "Montserrat",var(--f-display);letter-spacing:.01em;display:flex;position:relative;align-self:end}
-.sp-word b{display:inline-block;background:linear-gradient(90deg,#0B1F45,#14365F 60%,#1B4C76);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;clip-path:inset(0 100% 0 0);animation:spWrite .7s .75s cubic-bezier(.6,0,.2,1) forwards}
-.sp-word b.t{background-image:linear-gradient(90deg,#1F5A86,#2A7C93 55%,#3AA393);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;animation-delay:1.25s}
+.sp-word b{display:inline-block;background:linear-gradient(90deg,#0B1F45,#14365F 60%,#1B4C76);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+.sp-word b.t{background-image:linear-gradient(90deg,#1F5A86,#2A7C93 55%,#3AA393);-webkit-background-clip:text;background-clip:text}
 :root[data-theme="dark"] .sp-word b:not(.t){background:linear-gradient(90deg,#CFE0FA,#A9C8EE 55%,#8DB8E6);-webkit-background-clip:text;background-clip:text}
-.sp-tag{margin:8px 0 0;font:500 clamp(12px,1.9vw,17px)/1.3 var(--f-body);letter-spacing:.06em;color:#24324F;opacity:0;animation:spFade .6s 1.8s ease forwards;position:relative}
+.sp-tag{margin:8px 0 0;font:500 clamp(12px,1.9vw,17px)/1.3 var(--f-body);letter-spacing:.06em;color:#24324F;position:relative}
 :root[data-theme="dark"] .sp-tag{color:#B7C3D8}
 .sp-road{position:relative;height:6px;border-radius:3px;background:#E6EBF1;overflow:hidden;margin-top:14px;grid-column:2}
 :root[data-theme="dark"] .sp-road{background:#1F2838}
-.sp-road i{position:absolute;inset:0;background:repeating-linear-gradient(90deg,#14365F 0 22px,transparent 22px 30px,#3AA393 30px 52px,transparent 52px 60px);background-size:120px 100%;width:0;animation:spRoad 2.6s .4s ease forwards,spDash 1s linear infinite}
+.sp-road i{position:absolute;inset:0;background:repeating-linear-gradient(90deg,#14365F 0 22px,transparent 22px 30px,#3AA393 30px 52px,transparent 52px 60px);background-size:120px 100%;width:100%}
 .sp-msg{margin:0;font-size:13px;color:#56637C;min-height:1.3em;text-align:center}
+:root[data-theme="dark"] .sp-msg{color:#9FB0CA}
 .sp-msg.err{color:#B3261E;font-weight:600}
-@keyframes spIn{to{opacity:1;transform:none}}
-@keyframes spFade{to{opacity:1}}
-@keyframes spWrite{to{clip-path:inset(0 0 0 0)}}
-@keyframes spRoad{to{width:100%}}
+:root[data-theme="dark"] .sp-msg.err{color:#FF8A80}
+/* bouton « Passer l'animation » */
+.sp-skip{position:absolute;right:max(14px,env(safe-area-inset-right));bottom:max(14px,env(safe-area-inset-bottom));font:600 13px/1 var(--f-body);color:#14365F;background:#FFFFFFE6;border:1px solid #1B4C7666;border-radius:999px;padding:10px 16px;min-height:40px;cursor:pointer}
+.sp-skip:hover{background:#fff;border-color:#1B4C76}
+.sp-skip:focus-visible{outline:2px solid #2A7C93;outline-offset:2px}
+:root[data-theme="dark"] .sp-skip{color:#CFE0FA;background:#1A2336E6;border-color:#8DB8E688}
+:root[data-theme="dark"] .sp-skip:hover{background:#243049}
+/* scène (créée par js/intro.js) */
+.sp-anim .sp-grid,.sp-anim .sp-word b,.sp-anim .sp-tag{opacity:0}
+.sp-anim .sp-mark{visibility:hidden}
+.sp-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.sp-l{fill:none;stroke:var(--sp-l);stroke-width:2;stroke-linejoin:round;stroke-linecap:butt}
+.sp-l.h{opacity:.38;stroke-width:1.5}
+.sp-l.cl{opacity:.45;stroke-width:1.2}
+.sp-l.rib{opacity:.55;stroke-width:1.3}
+.sp-l.pt{stroke:var(--sp-ac);stroke-width:1.6}
+.sp-fl{fill:var(--sp-fl);opacity:0}.sp-fr{fill:var(--sp-fr);opacity:0}.sp-ft{fill:var(--sp-ft);opacity:0}.sp-fg{fill:var(--sp-ac2);opacity:0}
+.sp-br{fill:none;stroke:var(--sp-ac);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;opacity:0;transform-origin:160px 135.5px}
+.sp-lay{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+.sp-scan{position:absolute;left:0;top:-7%;bottom:-7%;width:100%;pointer-events:none;border-right:2px solid var(--sp-ac2);background:linear-gradient(90deg,transparent,#3AA39338);opacity:0}
+.sp-dot{position:absolute;width:5.3125%;aspect-ratio:1;transform:translate(-50%,-50%);pointer-events:none}
+.sp-dot i{position:absolute;inset:0;border-radius:50%;background:url(assets/emblem-320.webp) no-repeat;background-size:1882.35% auto;opacity:0}
+.sp-dot b{position:absolute;inset:-2px;border-radius:50%;border:1.5px solid var(--sp-ac2);opacity:0}
+.sp-rm .sp-stage,.sp-seen .sp-stage{animation:spFade .15s linear both}
+.sp-anim .sp-road i{animation:spDash 1s linear infinite}
+@keyframes spFade{from{opacity:0}to{opacity:1}}
 @keyframes spDash{to{background-position:120px 0}}
-@media (max-width:560px){.sp-stage{grid-template-columns:1fr;justify-items:center;text-align:center}.sp-mark{grid-row:auto;margin-bottom:10px}.sp-road{grid-column:1;width:80%}}
-@media (prefers-reduced-motion:reduce){.sp-mark,.sp-word b,.sp-tag,.sp-grid{animation:none;opacity:1;transform:none;clip-path:none}.sp-road i{animation:none;width:100%}}
+@keyframes spGuard{to{opacity:0;visibility:hidden;pointer-events:none}}
+@media (max-width:560px){.sp-stage{grid-template-columns:1fr;justify-items:center;text-align:center}.sp-fig{grid-row:auto;width:clamp(150px,46vw,190px);margin-bottom:10px}.sp-road{grid-column:1;width:80%}}
+@media (prefers-reduced-motion:reduce){.sp-skip{display:none}}

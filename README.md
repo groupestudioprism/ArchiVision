@@ -39,6 +39,7 @@ Produit `archivision` du site Studio Prism : un administrateur attribue la licen
 | `src/parts/` | Structure de la page : intro, compte, visite, interface AR, accueil |
 | `src/css/` | Charte Studio Prism d'ARCHIPLAN (`app.css`, `home.css`, `auth.css`), intro (`splash.css`), couleurs ARCHIVISION (`brand.css`), visite et AR (`vision.css`) |
 | `src/js/auth.js`, `auth-end.js` | Compte Studio Prism (même module qu'ARCHIPLAN / ARCHITRAFIC, produit `archivision`) |
+| `src/js/intro.js` | Animation d'ouverture (maquette qui se construit, balayage AR, emblème officiel) ; `?intro=1` la rejoue, une fois par session sinon ; bouton « Passer l'animation » |
 | `src/js/vision-home.js` | Accueil « Mes maquettes », galerie et visionneuse de photos, stockage IndexedDB |
 | `src/engine/` | Moteur (module ES, Three.js r160) : vue et styles, navigation, chargement GLB / glTF / IFC (web-ifc 0.0.77) / ZIP, maquette d'exemple, BIM, réalité augmentée, interface |
 | `assets/` | Logo ARCHIVISION (Drive ARCHIVISION / 02 Logo), icônes de l'app |
