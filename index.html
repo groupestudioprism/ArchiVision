@@ -1823,9 +1823,9 @@ const SCREENS = {
     <button class="ap-btn alt" type="button" id="apSkip" style="margin-top:10px">${view.settings ? 'Annuler' : view.afterLock ? 'Plus tard' : 'Non merci, le code PIN suffit'}</button>`,
 
   lock:() => { const l = Lock.get(me.uid) || {}; return `<div class="ap-center"><div class="ap-avatar" aria-hidden="true">${esc(initials())}</div>
-    <h2>Bonjour ${esc(me.firstName || '')}</h2><p class="ap-sub">Saisissez votre code PIN pour ouvrir ARCHIVISION.</p></div>
+    <h2>Bonjour ${esc(me.firstName || '')}</h2><p class="ap-sub">${l.bio && window.PublicKeyCredential ? `Utilisez ${Bio.label()} ou saisissez votre code PIN pour ouvrir ARCHIVISION.` : 'Saisissez votre code PIN pour ouvrir ARCHIVISION.'}</p></div>
+    ${l.bio && window.PublicKeyCredential ? `<button class="ap-btn" type="button" id="apBio" style="margin:0 auto 14px;display:flex;align-items:center;justify-content:center;gap:8px"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M7 3H5a2 2 0 0 0-2 2v2M17 3h2a2 2 0 0 1 2 2v2M7 21H5a2 2 0 0 1-2-2v-2M17 21h2a2 2 0 0 0 2-2v-2M9 9v1M15 9v1M12 9v4h-1M9 16c1.5 1 4.5 1 6 0"/></svg>Utiliser ${Bio.label()}</button>` : ''}
     ${pinPad()}
-    ${l.bio && window.PublicKeyCredential ? `<button class="ap-btn alt" type="button" id="apBio">Utiliser ${Bio.label()}</button>` : ''}
     <div class="ap-links"><button type="button" class="ap-link" id="apForgot">Code PIN oublié ?</button><button type="button" class="ap-link" data-act="logout">Changer de compte</button></div>`; },
 
   security:() => { const l = Lock.get(me.uid) || {}, has = !!(l.pin || l.rpin); return `<h2>Code PIN et sécurité</h2>
@@ -1957,7 +1957,10 @@ const WIRE = {
     };
     const l = Lock.get(me.uid) || {}, bb = $a('#apBio');
     const tryBio = async silent => { try { if (await Bio.verify(l.bio)) afterLogin(me, true); } catch(e){ if (!silent) setErr('Déverrouillage annulé. Utilisez votre code PIN.'); } };
-    if (bb){ bb.onclick = () => tryBio(false); if (!view.noAuto) afterIntro().then(() => current === 'lock' && Bio.autoOK() && tryBio(true)); }   // biométrie demandée seulement après l'intro et le chargement
+    if (bb){ bb.onclick = () => tryBio(false); if (!view.noAuto) afterIntro().then(() => { if (current !== 'lock') return; if (Bio.autoOK()) return tryBio(true);
+      // iPhone, iPad, Safari : Face ID / Touch ID exige un geste ; le premier toucher hors du clavier le lance
+      const tap = e => { if (current !== 'lock'){ removeEventListener('pointerup', tap, true); return; } if (e.target.closest?.('.ap-pad, .ap-links, #apBio')) return; removeEventListener('pointerup', tap, true); tryBio(false); };
+      addEventListener('pointerup', tap, true); }); }   // biométrie demandée seulement après l'intro et le chargement
     $a('#apForgot').onclick = async () => { Lock.clear(me.uid); ctx.email = me.email; ctx.forcePinReset = true; await Auth.signOut(); me = null; show('login', {msg:'Reconnectez-vous avec votre mot de passe. Vous choisirez ensuite un nouveau code PIN.'}); };
   },
   security(){
