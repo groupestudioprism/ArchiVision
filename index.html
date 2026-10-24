@@ -1664,6 +1664,16 @@ const Lock = {
   async setPin(uid, pin){ const salt = randB64(16); const prev = this.get(uid) || {}; const rec = {...prev, declined:false, salt, iter:200000, pin:await pbkdf2(pin, salt, 200000), failed:0}; delete rec.rpin; this.set(uid, rec); return rec; },
   async check(uid, pin){ const l = this.get(uid); if (!l?.pin) return false; const ok = await pbkdf2(pin, l.salt, l.iter) === l.pin; l.failed = ok ? 0 : (l.failed || 0) + 1; this.set(uid, l); return ok; },
 };
+/* Face ID / empreinte partagés entre toutes les apps Studio Prism (*.studio-prism.com) :
+   la clé d'accès est créée pour le domaine studio-prism.com et son identifiant (non secret) est gardé dans un cookie commun aux apps. */
+const SP_DOMAIN = /(^|\.)studio-prism\.com$/.test(location.hostname) ? 'studio-prism.com' : null;
+const BioShare = {
+  name: uid => 'sp_bio_' + String(uid).replace(/[^A-Za-z0-9]/g, '').slice(0, 40),
+  get(uid){ const m = document.cookie.match(new RegExp('(?:^|; )' + this.name(uid) + '=([^;]*)')); return m ? decodeURIComponent(m[1]) : null; },
+  set(uid, id){ if (!SP_DOMAIN) return; document.cookie = `${this.name(uid)}=${encodeURIComponent(id)}; domain=.${SP_DOMAIN}; path=/; max-age=${60 * 60 * 24 * 400}; secure; samesite=lax`; },
+  del(uid){ if (!SP_DOMAIN) return; document.cookie = `${this.name(uid)}=; domain=.${SP_DOMAIN}; path=/; max-age=0; secure; samesite=lax`; },
+  sync(uid){ const l = Lock.get(uid); if (!l) return; const c = this.get(uid); if (c && (!l.bio || !l.bioShared)){ Lock.set(uid, {...l, bio:c, bioShared:true}); } },   // activé dans une autre app : repris ici
+};
 const Bio = {
   label(){
     const ua = navigator.userAgent, p = navigator.platform || '';
@@ -1678,15 +1688,15 @@ const Bio = {
   autoOK(){ const ua = navigator.userAgent; return !(/iPhone|iPad|iPod/.test(ua) || (/Safari/.test(ua) && !/Chrome|Chromium|Edg|Android/.test(ua)) || ((navigator.platform || '') === 'MacIntel' && navigator.maxTouchPoints > 1)); },
   async enroll(u){
     const cred = await navigator.credentials.create({publicKey:{
-      challenge:crypto.getRandomValues(new Uint8Array(32)), rp:{name:'ARCHIVISION · Studio Prism'},
+      challenge:crypto.getRandomValues(new Uint8Array(32)), rp:{name:'Studio Prism', ...(SP_DOMAIN ? {id:SP_DOMAIN} : {})},
       user:{id:enc.encode(u.uid).slice(0, 64), name:u.email, displayName:`${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email},
       pubKeyCredParams:[{type:'public-key', alg:-7}, {type:'public-key', alg:-257}],
       authenticatorSelection:{authenticatorAttachment:'platform', userVerification:'required', residentKey:'discouraged'},
       timeout:60000, attestation:'none'}});
-    return b64(cred.rawId);
+    const id = b64(cred.rawId); BioShare.set(u.uid, id); return id;
   },
-  async verify(credId){
-    const a = await navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)), allowCredentials:[{type:'public-key', id:unb64(credId), transports:['internal', 'hybrid']}], userVerification:'required', timeout:60000}});
+  async verify(credId, shared){
+    const a = await navigator.credentials.get({publicKey:{...(shared && SP_DOMAIN ? {rpId:SP_DOMAIN} : {}), challenge:crypto.getRandomValues(new Uint8Array(32)), allowCredentials:[{type:'public-key', id:unb64(credId), transports:['internal', 'hybrid']}], userVerification:'required', timeout:60000}});
     return !!a;
   },
 };
@@ -1943,7 +1953,7 @@ const WIRE = {
   'bio-offer'(){
     $a('#apBio').onclick = async e => {
       busy(e.currentTarget, true, 'En attente de l\'appareil…');
-      try { const id = await Bio.enroll(me); Lock.set(me.uid, {...(Lock.get(me.uid) || {}), bio:id}); view.settings ? show('security', {msg:'Biométrie activée.'}) : view.afterLock ? afterLogin(me, true) : enterApp('Déverrouillage biométrique activé'); }
+      try { const id = await Bio.enroll(me); Lock.set(me.uid, {...(Lock.get(me.uid) || {}), bio:id, bioShared:!!SP_DOMAIN}); view.settings ? show('security', {msg:'Biométrie activée.'}) : view.afterLock ? afterLogin(me, true) : enterApp('Déverrouillage biométrique activé'); }
       catch(err){ busy(e.currentTarget, false); setErr('L\'activation n\'a pas abouti. Vous pourrez réessayer depuis « Sécurité de cet appareil ».'); }
     };
     $a('#apSkip').onclick = () => view.settings ? show('security') : view.afterLock ? afterLogin(me, true) : enterApp('Code PIN activé');
@@ -1956,7 +1966,7 @@ const WIRE = {
       shake(); setErr(`Code incorrect. ${left} essai${left > 1 ? 's' : ''} restant${left > 1 ? 's' : ''}.`);
     };
     const l = Lock.get(me.uid) || {}, bb = $a('#apBio');
-    const tryBio = async silent => { try { if (await Bio.verify(l.bio)) afterLogin(me, true); } catch(e){ if (!silent) setErr('Déverrouillage annulé. Utilisez votre code PIN.'); } };
+    const tryBio = async silent => { try { if (await Bio.verify(l.bio, l.bioShared)) afterLogin(me, true); } catch(e){ if (!silent) setErr('Déverrouillage annulé. Utilisez votre code PIN.'); } };
     if (bb){ bb.onclick = () => tryBio(false); if (!view.noAuto) afterIntro().then(() => { if (current !== 'lock') return; if (Bio.autoOK()) return tryBio(true);
       // iPhone, iPad, Safari : Face ID / Touch ID exige un geste ; le premier toucher hors du clavier le lance
       const tap = e => { if (current !== 'lock'){ removeEventListener('pointerup', tap, true); return; } if (e.target.closest?.('.ap-pad, .ap-links, #apBio')) return; removeEventListener('pointerup', tap, true); tryBio(false); };
@@ -1970,7 +1980,7 @@ const WIRE = {
       else if (k === 'pin-off'){ Lock.set(me.uid, {declined:true, rpin:l.pin, rsalt:l.salt, riter:l.iter}); show('security', {msg:'Le code PIN ne sera plus demandé sur cet appareil.'}); }
       else if (k === 'pin-on'){ Lock.set(me.uid, {...l, declined:false, pin:l.rpin, salt:l.rsalt, iter:l.riter, failed:0, rpin:undefined}); show('security', {msg:'Le code PIN sera demandé à chaque ouverture.'}); }
       else if (k === 'bio-on') show('bio-offer', {settings:true});
-      else if (k === 'bio-off'){ delete l.bio; Lock.set(me.uid, l); show('security', {msg:'Biométrie désactivée.'}); }
+      else if (k === 'bio-off'){ delete l.bio; delete l.bioShared; Lock.set(me.uid, l); BioShare.del(me.uid); show('security', {msg:'Biométrie désactivée.'}); }
     });
   },
 };
@@ -2474,6 +2484,7 @@ window.addEventListener('keydown', e => {
     // Profil vérifié en arrière-plan : un compte désactivé entre-temps est déconnecté
     Auth.verifying?.then(v => { if (me?.uid === v.uid && v.firstName){ me.firstName = v.firstName; me.lastName = v.lastName; } })
       .catch(async e => { if (e?.code === 'app/suspended' && me){ Save.end(); $a('#home').hidden = true; ctx.where = ''; me = null; show('login', {err:errMsg(e)}); } });
+    BioShare.sync(u.uid);
     if (Lock.get(u.uid)?.pin) return show('lock');
     return afterLogin(u);
   } catch(e){
