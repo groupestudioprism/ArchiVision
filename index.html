@@ -1696,9 +1696,15 @@ const Bio = {
       timeout:60000, attestation:'none'}});
     const id = b64(cred.rawId); BioShare.set(u.uid, id); return id;
   },
-  async verify(credId, shared){
-    const a = await navigator.credentials.get({publicKey:{...(shared && SP_DOMAIN ? {rpId:SP_DOMAIN} : {}), challenge:crypto.getRandomValues(new Uint8Array(32)), allowCredentials:[{type:'public-key', id:unb64(credId), transports:['internal', 'hybrid']}], userVerification:'required', timeout:60000}});
-    return !!a;
+  // une seule demande à la fois : un second appel (demande automatique + bouton, écran réaffiché…) réutilise la demande en cours,
+  // et une vérification réussie vaut 20 secondes (pas de seconde empreinte pour la même ouverture)
+  _p:null, _ok:0,
+  verify(credId, shared){
+    if (Date.now() - this._ok < 20000) return Promise.resolve(true);
+    if (this._p) return this._p;
+    this._p = navigator.credentials.get({publicKey:{...(shared && SP_DOMAIN ? {rpId:SP_DOMAIN} : {}), challenge:crypto.getRandomValues(new Uint8Array(32)), allowCredentials:[{type:'public-key', id:unb64(credId), transports:['internal', 'hybrid']}], userVerification:'required', timeout:60000}})
+      .then(a => { if (a) this._ok = Date.now(); return !!a; }).finally(() => { this._p = null; });
+    return this._p;
   },
 };
 
@@ -1968,7 +1974,7 @@ const WIRE = {
     };
     const l = Lock.get(me.uid) || {}, bb = $a('#apBio');
     const tryBio = async silent => { try { if (await Bio.verify(l.bio, l.bioShared)) afterLogin(me, true); } catch(e){ if (!silent) setErr('Déverrouillage annulé. Utilisez votre code PIN.'); } };
-    if (bb){ bb.onclick = () => tryBio(false); if (!view.noAuto) afterIntro().then(() => { if (current !== 'lock') return; if (Bio.autoOK()) return tryBio(true);
+    if (bb){ bb.onclick = () => tryBio(false); if (!view.noAuto) afterIntro().then(() => { if (current !== 'lock' || Bio._auto) return; Bio._auto = 1; if (Bio.autoOK()) return tryBio(true);
       // iPhone, iPad, Safari : Face ID / Touch ID exige un geste ; le premier toucher hors du clavier le lance
       const tap = e => { if (current !== 'lock'){ removeEventListener('pointerup', tap, true); return; } if (e.target.closest?.('.ap-pad, .ap-links, #apBio')) return; removeEventListener('pointerup', tap, true); tryBio(false); };
       addEventListener('pointerup', tap, true); }); }   // biométrie demandée seulement après l'intro et le chargement
