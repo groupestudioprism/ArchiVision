@@ -1817,10 +1817,10 @@ const SCREENS = {
     <p class="ap-sub">${view.stage === 2 ? 'Saisissez le même code une seconde fois.' : `${PIN_LEN} chiffres, faciles à retenir pour vous, difficiles à deviner pour les autres.`}</p></div>
     ${pinPad()}${view.settings ? '<div class="ap-links"><button type="button" class="ap-link" data-go="security">Annuler</button></div>' : ''}`,
 
-  'bio-offer':() => `${view.settings ? '' : steps(2)}<h2>Utiliser ${Bio.label()} ?</h2>
+  'bio-offer':() => `${view.settings || view.afterLock ? '' : steps(2)}<h2>Utiliser ${Bio.label()} ?</h2>
     <p class="ap-sub">Facultatif : déverrouillez ARCHIVISION en un geste sur cet appareil. Votre code PIN reste toujours disponible.</p>${errBox()}
     <button class="ap-btn" type="button" id="apBio">Activer ${Bio.label()}</button>
-    <button class="ap-btn alt" type="button" id="apSkip" style="margin-top:10px">${view.settings ? 'Annuler' : 'Non merci, le code PIN suffit'}</button>`,
+    <button class="ap-btn alt" type="button" id="apSkip" style="margin-top:10px">${view.settings ? 'Annuler' : view.afterLock ? 'Plus tard' : 'Non merci, le code PIN suffit'}</button>`,
 
   lock:() => { const l = Lock.get(me.uid) || {}; return `<div class="ap-center"><div class="ap-avatar" aria-hidden="true">${esc(initials())}</div>
     <h2>Bonjour ${esc(me.firstName || '')}</h2><p class="ap-sub">Saisissez votre code PIN pour ouvrir ARCHIVISION.</p></div>
@@ -1943,14 +1943,14 @@ const WIRE = {
   'bio-offer'(){
     $a('#apBio').onclick = async e => {
       busy(e.currentTarget, true, 'En attente de l\'appareil…');
-      try { const id = await Bio.enroll(me); Lock.set(me.uid, {...(Lock.get(me.uid) || {}), bio:id}); view.settings ? show('security', {msg:'Biométrie activée.'}) : enterApp('Déverrouillage biométrique activé'); }
+      try { const id = await Bio.enroll(me); Lock.set(me.uid, {...(Lock.get(me.uid) || {}), bio:id}); view.settings ? show('security', {msg:'Biométrie activée.'}) : view.afterLock ? afterLogin(me, true) : enterApp('Déverrouillage biométrique activé'); }
       catch(err){ busy(e.currentTarget, false); setErr('L\'activation n\'a pas abouti. Vous pourrez réessayer depuis « Sécurité de cet appareil ».'); }
     };
-    $a('#apSkip').onclick = () => view.settings ? show('security') : enterApp('Code PIN activé');
+    $a('#apSkip').onclick = () => view.settings ? show('security') : view.afterLock ? afterLogin(me, true) : enterApp('Code PIN activé');
   },
   lock(){
     pinHandler = async pin => {
-      if (await Lock.check(me.uid, pin)) return afterLogin(me, true);
+      if (await Lock.check(me.uid, pin)){ const l2 = Lock.get(me.uid) || {}; if (!l2.bio && bioOK && !l2.bioAsked){ Lock.set(me.uid, {...l2, bioAsked:true}); return show('bio-offer', {afterLock:true}); } return afterLogin(me, true); }   // Face ID / empreinte proposé une fois sur cet appareil
       const left = PIN_TRIES - (Lock.get(me.uid)?.failed || 0);
       if (left <= 0){ Lock.clear(me.uid); ctx.email = me.email; ctx.forcePinReset = true; await Auth.signOut(); me = null; return show('login', {msg:'Trop de codes incorrects. Pour votre sécurité, reconnectez-vous avec votre mot de passe, puis choisissez un nouveau code PIN.', msgCls:'warn'}); }
       shake(); setErr(`Code incorrect. ${left} essai${left > 1 ? 's' : ''} restant${left > 1 ? 's' : ''}.`);
