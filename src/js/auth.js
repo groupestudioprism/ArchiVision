@@ -292,7 +292,9 @@ const Bio = {
     if (/Win/.test(p)) return 'Windows Hello';
     return 'la biométrie de l\'appareil';
   },
-  async available(){ try { return !!(window.PublicKeyCredential && await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()); } catch(e){ return false; } },
+  async available(){ if (!window.PublicKeyCredential || !window.isSecureContext) return false; try { return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable(); } catch(e){ return true; } },   // en cas de doute on propose : l'appareil dira lui-même s'il ne sait pas faire
+  // Safari (Mac, iPhone, iPad) n'ouvre Face ID / Touch ID qu'après un geste de l'utilisateur : pas de demande automatique, on attend le bouton
+  autoOK(){ const ua = navigator.userAgent; return !(/iPhone|iPad|iPod/.test(ua) || (/Safari/.test(ua) && !/Chrome|Chromium|Edg|Android/.test(ua)) || ((navigator.platform || '') === 'MacIntel' && navigator.maxTouchPoints > 1)); },
   async enroll(u){
     const cred = await navigator.credentials.create({publicKey:{
       challenge:crypto.getRandomValues(new Uint8Array(32)), rp:{name:'ARCHIVISION · Studio Prism'},
@@ -303,7 +305,7 @@ const Bio = {
     return b64(cred.rawId);
   },
   async verify(credId){
-    const a = await navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)), allowCredentials:[{type:'public-key', id:unb64(credId)}], userVerification:'required', timeout:60000}});
+    const a = await navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)), allowCredentials:[{type:'public-key', id:unb64(credId), transports:['internal', 'hybrid']}], userVerification:'required', timeout:60000}});
     return !!a;
   },
 };
@@ -442,7 +444,7 @@ const SCREENS = {
   lock:() => { const l = Lock.get(me.uid) || {}; return `<div class="ap-center"><div class="ap-avatar" aria-hidden="true">${esc(initials())}</div>
     <h2>Bonjour ${esc(me.firstName || '')}</h2><p class="ap-sub">Saisissez votre code PIN pour ouvrir ARCHIVISION.</p></div>
     ${pinPad()}
-    ${l.bio && bioOK ? `<button class="ap-btn alt" type="button" id="apBio">Utiliser ${Bio.label()}</button>` : ''}
+    ${l.bio && window.PublicKeyCredential ? `<button class="ap-btn alt" type="button" id="apBio">Utiliser ${Bio.label()}</button>` : ''}
     <div class="ap-links"><button type="button" class="ap-link" id="apForgot">Code PIN oublié ?</button><button type="button" class="ap-link" data-act="logout">Changer de compte</button></div>`; },
 
   security:() => { const l = Lock.get(me.uid) || {}, has = !!(l.pin || l.rpin); return `<h2>Code PIN et sécurité</h2>
@@ -574,7 +576,7 @@ const WIRE = {
     };
     const l = Lock.get(me.uid) || {}, bb = $a('#apBio');
     const tryBio = async silent => { try { if (await Bio.verify(l.bio)) afterLogin(me, true); } catch(e){ if (!silent) setErr('Déverrouillage annulé. Utilisez votre code PIN.'); } };
-    if (bb){ bb.onclick = () => tryBio(false); if (!view.noAuto) afterIntro().then(() => current === 'lock' && tryBio(true)); }   // biométrie demandée seulement après l'intro et le chargement
+    if (bb){ bb.onclick = () => tryBio(false); if (!view.noAuto) afterIntro().then(() => current === 'lock' && Bio.autoOK() && tryBio(true)); }   // biométrie demandée seulement après l'intro et le chargement
     $a('#apForgot').onclick = async () => { Lock.clear(me.uid); ctx.email = me.email; ctx.forcePinReset = true; await Auth.signOut(); me = null; show('login', {msg:'Reconnectez-vous avec votre mot de passe. Vous choisirez ensuite un nouveau code PIN.'}); };
   },
   security(){
