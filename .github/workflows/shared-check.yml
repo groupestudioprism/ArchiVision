@@ -1,0 +1,9 @@
+name: Code commun Studio Prism
+on: [push, pull_request]
+jobs:
+  shared:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: git clone --depth 1 https://github.com/groupestudioprism/Studio-Prism /tmp/sp
+      - run: python3 /tmp/sp/tools/sync_shared.py --app ArchiVision . --check

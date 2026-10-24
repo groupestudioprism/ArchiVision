@@ -1656,6 +1656,7 @@ const ERR = {
 const errMsg = e => ERR[e?.code] || 'Une erreur est survenue. Réessayez dans un instant.';
 
 /* ---------- Verrouillage de l'appareil : code PIN chiffré + biométrie (passkey) ---------- */
+/* Bloc commun (verrouillage, code PIN, Face ID) : source unique studio-prism/shared/device-lock.js, recopiée par tools/sync_shared.py — ne pas modifier ici */
 const Lock = {
   key: uid => 'sp.lock.' + uid,
   get(uid){ return store.get(this.key(uid)); },
