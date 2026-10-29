@@ -203,7 +203,24 @@ const FirebaseAuth = {
     return {level:'discovery', info, license};
   },
   // Activation d'une clé de licence (même procédure que la page « Activer une clé » du site, vérifiée par les règles Firestore).
+  // Clé pack (fiche dont le libellé commence par « Pack app1+app2… ») : la clé saisie active la 1re application, celle de
+  // chaque autre application est dérivée de la clé pack (SHA-256 de « CLÉ|identifiant », même calcul que le site).
   async redeemKey(u, raw){
+    const n = normKey(raw); if (n.length < 12 || n.length > 40) throw {code:'app/key-format'};
+    const ks = await this.db.collection('licenseKeys').doc(await sha256hex(n)).get();
+    if (!ks.exists) throw {code:'app/key-unknown'};
+    const m = /^Pack ([a-z0-9_+-]+)/.exec(ks.data().label || ''), apps = m ? m[1].split('+').filter(Boolean) : [];
+    if (apps.length < 2) return this.redeemOne(u, raw);
+    const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', res = [];
+    for (const [i, pid] of apps.entries()){
+      let key = raw; if (i){ const h = await sha256hex(n + '|' + pid); key = 'PACK' + Array.from({length:12}, (_, j) => A[parseInt(h.substr(j * 2, 2), 16) % 32]).join(''); }
+      try { res.push({pid, k:await this.redeemOne(u, key)}); } catch(e){ res.push({pid, e}); }
+    }
+    const ok = res.filter(r => r.k), own = res.find(r => r.pid === LICENSE_PRODUCT);
+    if (!ok.length) throw (own || res[0]).e;
+    return {...((own && own.k) || ok[0].k), packCount:ok.length};
+  },
+  async redeemOne(u, raw){
     const n = normKey(raw); if (n.length < 12 || n.length > 40) throw {code:'app/key-format'};
     const id = await sha256hex(n), kref = this.db.collection('licenseKeys').doc(id), ks = await kref.get();
     if (!ks.exists) throw {code:'app/key-unknown'};
@@ -552,7 +569,7 @@ const WIRE = {
   },
   licence(){
     $a('#apKeyF').onsubmit = async e => { e.preventDefault(); const b = e.currentTarget.querySelector('button'), err = $a('#apKeyErr'); err.textContent = ''; busy(b, true, 'Activation…');
-      try { const k = await Auth.redeemKey(me, $a('#apKey').value); await refreshAccess(); show('licence', {}); toastA(`Clé activée : ${k.productName} ${licLabel(k.licenseType)}${k.orgName ? ' · ' + k.orgName : ''}`); }
+      try { const k = await Auth.redeemKey(me, $a('#apKey').value); await refreshAccess(); show('licence', {}); toastA(k.packCount > 1 ? `Pack activé : ${k.packCount} applications sur votre compte.` : `Clé activée : ${k.productName} ${licLabel(k.licenseType)}${k.orgName ? ' · ' + k.orgName : ''}`); }
       catch(x){ busy(b, false); err.textContent = errMsg(x); } };
     $a('#apLicCheck').onclick = async e => { busy(e.currentTarget, true, 'Vérification…'); await refreshAccess(); show('licence', {reason:view.reason === 'export' ? 'export' : ''}); toastA(access.level === 'discovery' ? 'Toujours aucune licence active' : 'Licence active : ARCHIVISION est débloqué'); };
   },
