@@ -85,8 +85,10 @@ canvas.addEventListener('pointermove', e => {
   const dx = e.clientX - ptr.x, dy = e.clientY - ptr.y; ptr.x = e.clientX; ptr.y = e.clientY;
   if (Math.hypot(e.clientX - ptr.x0, e.clientY - ptr.y0) > 6) ptr.moved = true;
   if (V.tool === 'walk' || V.tool === 'pano'){
-    const k = (camera.fov / 50) * 0.0042;
-    look.yaw += dx * k; look.pitch = clamp(look.pitch + dy * k, -1.45, 1.45); applyLook();
+    /* Marche (première personne) : la vue suit le geste (glisser à droite = tourner à droite, vers le bas = regarder vers le bas).
+       Immersion 360° : on « attrape » l'image, comme une visite panoramique (sens inverse). */
+    const k = (camera.fov / 50) * 0.0042, s = V.tool === 'walk' ? -1 : 1;
+    look.yaw += s * dx * k; look.pitch = clamp(look.pitch + s * dy * k, -1.45, 1.45); applyLook();
   }
 });
 function endPtr(e){
