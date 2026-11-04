@@ -86,7 +86,7 @@ canvas.addEventListener('pointermove', e => {
   if (Math.hypot(e.clientX - ptr.x0, e.clientY - ptr.y0) > 6) ptr.moved = true;
   if (V.tool === 'walk' || V.tool === 'pano'){
     const k = (camera.fov / 50) * 0.0042;
-    look.yaw += dx * k; look.pitch = clamp(look.pitch + dy * k, -1.45, 1.45); applyLook();
+    look.yaw -= dx * k; look.pitch = clamp(look.pitch - dy * k, -1.45, 1.45); applyLook();
   }
 });
 function endPtr(e){
