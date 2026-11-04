@@ -4,7 +4,7 @@
    données BIM et la sélection ; ils passent seulement sur le calque de rendu 1, que la caméra ne dessine pas mais que les
    rayons (sélection, mesure, marche) voient toujours. Le paquet qui contient la sélection est affiché en direct.
    Transparents (vitrages, rayons X) jamais fusionnés. Regroupement refait quand la visibilité, le style ou les ombres changent. */
-const BATCH_N = 320, BATCH = {on:true, chunks:[], key:'', soon:false};
+const BATCH_N = 320, BATCH = {on:true, chunks:[], key:'', soon:false, skip:new Set()};   // skip : pièces déplacées en direct (AR sur le PC), jamais fusionnées
 const batchGrp = new THREE.Group(); batchGrp.name = 'affichage-groupe'; batchGrp.matrixAutoUpdate = false; scene.add(batchGrp);
 const BATCH_INV = new THREE.Matrix4(), BATCH_M = new THREE.Matrix4(), BATCH_N3 = new THREE.Matrix3(), BATCH_V = new THREE.Vector3();
 function batchClear(){
@@ -45,7 +45,7 @@ function batchBuild(){
   BATCH.soon = false; batchClear(); BATCH.key = batchKey();
   if (!BATCH.on || !V.root || !V.meshes.length) return;
   V.root.updateWorldMatrix(true, true); BATCH_INV.copy(V.root.matrixWorld).invert();
-  const list = V.meshes.filter(o => isShown(o));
+  const list = V.meshes.filter(o => isShown(o) && !BATCH.skip.has(o));
   for (let i = 0; i < list.length; i += BATCH_N){
     const ch = {meshes:[], objs:[], grp:new THREE.Group(), live:false}, buckets = new Map();
     ch.grp.matrixAutoUpdate = false;

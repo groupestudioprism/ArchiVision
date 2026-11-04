@@ -57,6 +57,7 @@ const AVStore = (() => {
 window.AVStore = AVStore;
 window.AVUser = () => me ? {uid:me.uid, name:fullName()} : null;
 window.AVAccess = () => fullAccess();
+window.AVDb = () => Auth.mode === 'firebase' ? Auth.db : null;   // Firestore (null en mode démo) : session AR en direct
 
 /* ---------- Pont avec le moteur 3D (module) ---------- */
 let modelReady = window.AVApp ? Promise.resolve() : new Promise(res => window.addEventListener('ap:ready', res, {once:true}));
@@ -231,6 +232,7 @@ function modelMenu(btn, m){
 $a('#homeTabs').addEventListener('click', e => { const b = e.target.closest('[data-htab]'); if (!b) return; H.tab = b.dataset.htab; renderHome(); });
 $a('#homeNewP').addEventListener('click', () => { if (!fullAccess()) return show('licence', {reason:'export'}); $a('#homeFile').click(); });
 $a('#homeSample').addEventListener('click', () => openSample());
+$a('#homeARpc').addEventListener('click', () => window.AVLive?.openPc());
 $a('#homeAR').addEventListener('click', () => { const m = H.models?.[0]; m ? openModel(m, {ar:true}) : openSample({ar:true}); });
 $a('#homeAP').addEventListener('click', () => dlg(`<h3>Une maquette d'ARCHIPLAN</h3>
   <ol class="dlg-ol"><li>Dans ARCHIPLAN, ouvrez votre projet puis <b>Exporter</b> → <b>Archi Vision (.glb)</b>, ou le <b>paquet .zip</b> (GLB + IFC + métré).</li>

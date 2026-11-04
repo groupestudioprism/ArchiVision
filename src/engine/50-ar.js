@@ -55,6 +55,7 @@ async function startAR(){
   const ui = $('#arUi'); ui.hidden = false; $('#arCard').hidden = true; $('#arPlace').textContent = 'PLACER';
   arStatus('Activation de la caméra...');
   session.addEventListener('end', endAR);
+  window.AVLive?.hostStart();
   session.addEventListener('select', () => { if (!AR.placed) placeHere(); });
   renderer.xr.setReferenceSpaceType('local');
   try { await renderer.xr.setSession(session); } catch(e){ toast('Réalité augmentée non prise en charge par cet appareil.'); session.end().catch(() => {}); return; }
@@ -66,6 +67,7 @@ async function startAR(){
   setModeButtons();
 }
 function endAR(){
+  window.AVLive?.hostStop();
   const s = AR.save || {}; AR.session = null; AR.hitSource = null; AR.placed = false; reticle.visible = false;
   V.mode = 'tour'; delete document.body.dataset.ar; $('#arUi').hidden = true;
   ground.add(shadowPlane); pivot.visible = true; pivot.position.set(0, 0, 0); pivot.rotation.set(0, 0, 0); pivot.scale.setScalar(1);

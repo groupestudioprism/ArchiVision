@@ -34,6 +34,7 @@
     <div class="acts">
       <button class="ib" id="capBtn" title="Capture (C)" aria-label="Capture"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
       <button class="ib" id="fileBtn" aria-haspopup="true">Fichier</button>
+      <button class="ib" id="arPcBtn" title="Déplacer des éléments en direct dans la maquette AR du mobile (code de session)"><span>Voir en AR sur le PC</span></button>
       <button class="ib primary" id="arBtn" title="Voir la maquette en réalité augmentée"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3"/><path d="M12 7l4.5 2.5v5L12 17l-4.5-2.5v-5z"/><path d="M7.5 9.5L12 12l4.5-2.5M12 12v5"/></svg><span>Voir en AR</span></button>
       <button id="licBadge" type="button" hidden title="Licence ARCHIVISION">Découverte</button>
       <button class="ib" id="userBtn" hidden aria-haspopup="true" aria-label="Mon compte"></button>
@@ -90,7 +91,7 @@
 
 <!-- Réalité augmentée (WebXR) : interface superposée à la caméra -->
 <div id="arUi" hidden>
-  <div class="ar-top"><span class="hud-chip" id="arStatus">Visez une surface plane pour placer la maquette</span><button class="ar-x" id="arExit" aria-label="Quitter la réalité augmentée">✕</button></div>
+  <div class="ar-top"><span class="hud-chip" id="arStatus">Visez une surface plane pour placer la maquette</span><span class="hud-chip" id="arCode" hidden></span><button class="ar-x" id="arExit" aria-label="Quitter la réalité augmentée">✕</button></div>
   <div class="ar-card" id="arCard" hidden></div>
   <div class="ar-adjust" id="arAdjust">
     <div class="ar-row"><span>Échelle</span><input type="range" id="arScale" min="0" max="1000" step="1" value="1000" aria-label="Échelle"><b id="arScaleV">1:1</b></div>
@@ -103,6 +104,14 @@
     <button class="btn-hud" id="arCap">CAPTURE</button>
     <button class="btn-hud" id="arInspect">INSPECTER</button>
   </div>
+</div>
+
+<!-- Voir en AR sur le PC : interface de déplacement en direct (session par code) -->
+<div id="arPc" hidden>
+  <header class="pc-head"><b>Voir en AR sur le PC</b><span class="pc-code" id="pcCode"></span><span class="pc-st" id="pcSt"></span><button class="ib" id="pcReset">Tout remettre en place</button><button class="ib" id="pcClose">Quitter</button></header>
+  <aside class="pc-list"><input type="search" id="pcQ" placeholder="Chercher un élément" aria-label="Chercher un élément"><ul id="pcUl"></ul></aside>
+  <main class="pc-view"><canvas id="pcCanvas"></canvas><div class="pc-hint" id="pcHint">Choisissez un élément dans la liste ou cliquez dessus, puis tirez les flèches pour le déplacer. Seul le déplacement est possible.</div>
+    <div class="pc-xyz" id="pcXyz" hidden><span id="pcSel"></span><label>X<input type="number" step="0.01" id="pcX"></label><label>Y<input type="number" step="0.01" id="pcY"></label><label>Z<input type="number" step="0.01" id="pcZ"></label><button class="ib" id="pcBack">Remettre en place</button></div></main>
 </div>
 
 <div class="menu" id="fileMenu" hidden>
@@ -144,6 +153,7 @@
           <button type="button" class="hq primary" id="homeNewP"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 21h14"/></svg><span><b>Importer</b><small>GLB, glTF, IFC</small></span></button>
           <button type="button" class="hq" id="homeSample"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7M5 10v10h14V10"/></svg><span><b>Exemple</b><small>Maison à visiter</small></span></button>
           <button type="button" class="hq" id="homeAR"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3"/><path d="M12 7l4.5 2.5v5L12 17l-4.5-2.5v-5z"/></svg><span><b>Voir en AR</b><small id="homeARsub">Dernière maquette</small></span></button>
+          <button type="button" class="hq" id="homeARpc"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg><span><b>Voir en AR sur le PC</b><small>Code affiché dans l'app mobile</small></span></button>
           <button type="button" class="hq" id="homeAP"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V8l8-4 8 4v12"/><path d="M4 20h16M9 20v-6h6v6"/></svg><span><b>ARCHIPLAN</b><small>Export Archi Vision</small></span></button>
         </div></div>
       <aside class="h-quota" id="homeQuota" aria-live="polite"></aside>
