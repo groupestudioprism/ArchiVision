@@ -1,0 +1,30 @@
+// A AJOUTER aux règles Firestore du projet « archivision-studioprism » (Console Firebase → Firestore → Règles), à l'intérieur de
+// « match /databases/{database}/documents { ... } », puis PUBLIER. Ne remplace aucune règle existante.
+// Session « Voir en AR sur le PC » : code à 6 caractères, durée de vie 3 h max, lecture/écriture limitées à la session.
+match /arLive/{code} {
+  allow get: if request.auth != null && resource.data.expiresAt > request.time;      // pas de « list » : impossible de lister les codes
+  allow create: if request.auth != null
+    && code.matches('[A-HJ-NP-Z2-9]{6}')
+    && request.resource.data.keys().hasOnly(['v', 'code', 'owner', 'expires', 'expiresAt', 'createdAt', 'state', 'model', 'objects'])
+    && request.resource.data.owner == request.auth.uid
+    && request.resource.data.code == code
+    && request.resource.data.expiresAt > request.time
+    && request.resource.data.expiresAt < request.time + duration.value(3, 'h')
+    && request.resource.data.state == 'open'
+    && request.resource.data.objects is list && request.resource.data.objects.size() <= 300;
+  allow update: if request.auth != null && resource.data.owner == request.auth.uid
+    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['state']);   // l'hôte peut seulement clore la session
+  allow delete: if request.auth != null && resource.data.owner == request.auth.uid;
+
+  match /moves/{i} {
+    function sess() { return get(/databases/$(database)/documents/arLive/$(code)).data; }
+    allow read: if request.auth != null && sess().expiresAt > request.time;
+    allow create, update: if request.auth != null && sess().expiresAt > request.time && sess().state == 'open'
+      && request.resource.data.keys().hasOnly(['i', 'p', 'seq', 'c', 't'])             // position uniquement : ni rotation, ni échelle, ni suppression
+      && request.resource.data.i is int && string(request.resource.data.i) == i && request.resource.data.i < 300
+      && request.resource.data.p is list && request.resource.data.p.size() == 3
+      && request.resource.data.p[0] is number && request.resource.data.p[1] is number && request.resource.data.p[2] is number
+      && request.resource.data.seq is number && request.resource.data.c is string && request.resource.data.c.size() <= 16;
+  }
+}
+// Facultatif : activer la suppression automatique des sessions (TTL Firestore) sur le champ « expiresAt » de la collection arLive.
