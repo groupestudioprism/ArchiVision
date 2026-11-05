@@ -3100,7 +3100,7 @@ const keys = new Set();
 let joyVec = {x:0, y:0};
 const TOOL_HINT = {
   orbit:'<b>Orbite</b> : glissez pour tourner, pincez ou molette pour zoomer, deux doigts ou clic droit pour déplacer. Touchez un élément pour voir ses données.',
-  walk:'<b>Marche</b> : glissez pour regarder, joystick ou <kbd>Z</kbd><kbd>Q</kbd><kbd>S</kbd><kbd>D</kbd> / flèches pour avancer. La caméra suit les sols et les escaliers.',
+  walk:'<b>Marche</b> : glissez pour regarder, joystick ou <kbd>Z</kbd><kbd>Q</kbd><kbd>S</kbd><kbd>D</kbd> / flèches pour avancer. Les murs et les objets vous arrêtent (vous glissez le long des murs), les marches et escaliers se montent, les portes se traversent.',
   pano:'<b>Immersion 360°</b> : glissez pour regarder autour de vous, pincez pour zoomer. Touchez deux fois le sol pour vous y déplacer.',
   inspect:'<b>Inspecter</b> : touchez un élément de la maquette pour afficher ses données BIM.',
   measure:'<b>Mesure</b> : touchez deux points de la maquette. <kbd>Échap</kbd> efface les mesures.',
@@ -3142,25 +3142,99 @@ function exitFirstPerson(){
   controls.target.copy(camera.position).add(d.multiplyScalar(Math.max(2, V.radius / 2))); controls.update();
 }
 function applyLook(){ camera.rotation.set(look.pitch, look.yaw, 0, 'YXZ'); markDirty(); }
-const downRay = new THREE.Raycaster(); downRay.layers.enableAll();   // sols fusionnés (calque 1) compris
-/* altitude du sol sous un point : premier élément visible sous les yeux (sols, escaliers), sinon 0 */
+/* ---------- Collisions du mode Marche ----------
+   Le marcheur est un cylindre (rayon PR, yeux à EYE). Murs, objets, mobilier : rayons horizontaux à plusieurs hauteurs (de STEP à la tête) autour du
+   corps ; en cas de pénétration on repousse le long de la normale de la paroi, ce qui fait glisser le long des murs et dans les angles.
+   Sols, marches, escaliers : rayon vers le bas depuis la hauteur de marche (STEP) → on monte tout ce qui est plus bas que STEP, on est bloqué par plus haut.
+   Plafond bas (moins de HEAD de hauteur libre) : bloque. Les portes se traversent (leur vantail peut être modélisé fermé). Chute avec gravité. */
+const PR = 0.28, STEP = 0.5, HEAD = 1.75;
+const colRay = new THREE.Raycaster(); colRay.layers.enableAll();
+let colCache = null;
+const isPassable = m => { const e = elementOf(m), u = e.userData || {}; return /^IfcDoor/i.test(u.ifc?.classe || '') || /^(porte|door)\b/i.test(e.name || '') || /porte|door/i.test(u.archiplan?.famille || ''); };
+function colList(){
+  const key = V.meshes;
+  if (!colCache || colCache.key !== key || colCache.k !== V.unitScale){
+    V.root.updateMatrixWorld(true);
+    colCache = {key, k:V.unitScale, items:V.meshes.filter(m => m.geometry && !isPassable(m)).map(m => ({m, box:new THREE.Box3().setFromObject(m)}))};
+  }
+  return colCache.items;
+}
+const _qb = new THREE.Box3();
+/* éléments visibles dont la boîte touche le cylindre (x, z, rayon r) entre les altitudes y0 et y1 */
+function colNear(x, z, y0, y1, r){
+  _qb.min.set(x - r, y0, z - r); _qb.max.set(x + r, y1, z + r);
+  return colList().filter(c => c.box.intersectsBox(_qb) && isShown(c.m)).map(c => c.m);
+}
+/* altitude du sol sous un point : premier élément visible sous la hauteur « from » (sols, escaliers, objets bas), sinon 0 */
 function floorAt(p, from = p.y + 0.6){
   if (!V.meshes.length) return 0;
-  downRay.set(new THREE.Vector3(p.x, from, p.z), new THREE.Vector3(0, -1, 0)); downRay.far = 50;
-  const h = downRay.intersectObjects(V.meshes.filter(isShown), false)[0];
+  const near = colNear(p.x, p.z, -1e4, from + 1e-3, 0.02); if (!near.length) return 0;
+  colRay.set(new THREE.Vector3(p.x, from, p.z), new THREE.Vector3(0, -1, 0)); colRay.near = 0; colRay.far = 1e4;
+  const h = colRay.intersectObjects(near, false)[0];
   return h ? h.point.y : 0;
 }
-let floorT = 0;
+const _dn = new THREE.Vector3(0, -1, 0), _o = new THREE.Vector3(), _d = new THREE.Vector3(), _n = new THREE.Vector3();
+const COL_DIRS = Array.from({length:8}, (_, i) => new THREE.Vector3(Math.cos(i * Math.PI / 4), 0, Math.sin(i * Math.PI / 4)));
+const COL_H = [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1.05, 1.2].map(k => STEP + 0.05 + k);   // de la hauteur de marche à la tête
+/* repousse la position (en place) hors des parois ; renvoie vrai si un contact a eu lieu */
+function pushOut(p, feet){
+  const near = colNear(p.x, p.z, feet + STEP, feet + HEAD, PR + 0.05); if (!near.length) return false;
+  let hit = false;
+  for (let it = 0; it < 4; it++){
+    let moved = false;
+    for (const h of COL_H){
+      for (const d of COL_DIRS){
+        colRay.set(_o.set(p.x, feet + h, p.z), d); colRay.near = 0; colRay.far = PR;
+        const r = colRay.intersectObjects(near, false)[0]; if (!r) continue;
+        let pen;
+        if (r.face){
+          _n.copy(r.face.normal).transformDirection(r.object.matrixWorld); _n.y = 0;
+          if (_n.lengthSq() > 0.09){ _n.normalize(); pen = PR - r.distance * -d.dot(_n); if (pen > 0 && d.dot(_n) < 0){ p.addScaledVector(_n, pen); moved = hit = true; } continue; }
+        }
+        p.addScaledVector(d, -(PR - r.distance)); moved = hit = true;
+      }
+    }
+    // plateaux fins entre deux hauteurs de rayons (table, étagère, appui) : rayons vers le bas sur le pourtour, depuis la tête jusqu'à la hauteur de marche
+    for (const d of COL_DIRS){
+      colRay.set(_o.set(p.x + d.x * PR * 0.9, feet + HEAD, p.z + d.z * PR * 0.9), _dn); colRay.near = 0; colRay.far = HEAD - STEP;
+      if (colRay.intersectObjects(near, false)[0]){ p.addScaledVector(d, -0.07); moved = hit = true; }
+    }
+    if (!moved) break;
+  }
+  return hit;
+}
+function headBlocked(p, feet){
+  const near = colNear(p.x, p.z, feet + STEP, feet + HEAD, 0.05); if (!near.length) return false;
+  colRay.set(_o.set(p.x, feet + STEP, p.z), _d.set(0, 1, 0)); colRay.near = 0; colRay.far = HEAD - STEP;
+  return colRay.intersectObjects(near, false).length > 0;
+}
+function walkMove(dx, dz){
+  const n = Math.max(1, Math.ceil(Math.hypot(dx, dz) / 0.08)), p = camera.position;
+  for (let i = 0; i < n; i++){
+    const ox = p.x, oz = p.z, feet = p.y - EYE, wasBlocked = headBlocked(p, feet);
+    p.x += dx / n; p.z += dz / n;
+    pushOut(p, feet);
+    if (!wasBlocked && headBlocked(p, feet)){ p.x = ox; p.z = oz; }   // plafond trop bas
+  }
+}
+let floorT = 0, fallV = 0;
 tickers.add((dt, now) => {
   if (V.tool !== 'walk' || V.mode === 'ar') return;
   const f = (keys.has('z') || keys.has('w') || keys.has('arrowup') ? 1 : 0) - (keys.has('s') || keys.has('arrowdown') ? 1 : 0) + (-joyVec.y);
   const s = (keys.has('d') || keys.has('arrowright') ? 1 : 0) - (keys.has('q') || keys.has('a') || keys.has('arrowleft') ? 1 : 0) + joyVec.x;
-  if (Math.abs(f) < 0.05 && Math.abs(s) < 0.05) return;
-  const run = keys.has('shift') ? 2.5 : 1, v = WALK_SPEED * run * dt;
-  const fw = new THREE.Vector3(-Math.sin(look.yaw), 0, -Math.cos(look.yaw)), rt = new THREE.Vector3(Math.cos(look.yaw), 0, -Math.sin(look.yaw));
-  camera.position.addScaledVector(fw, f * v).addScaledVector(rt, s * v);
-  if (now - floorT > 90){ floorT = now; const fy = floorAt(camera.position, camera.position.y - EYE + 0.45); const want = fy + EYE; camera.position.y += (want - camera.position.y) * 0.5; }
-  markDirty();
+  const moving = Math.abs(f) >= 0.05 || Math.abs(s) >= 0.05;
+  if (moving){
+    const run = keys.has('shift') ? 2.5 : 1, v = WALK_SPEED * run * Math.min(dt, 0.1), l = Math.max(1, Math.hypot(f, s));
+    const fw = new THREE.Vector3(-Math.sin(look.yaw), 0, -Math.cos(look.yaw)), rt = new THREE.Vector3(Math.cos(look.yaw), 0, -Math.sin(look.yaw));
+    walkMove((fw.x * f + rt.x * s) / l * v, (fw.z * f + rt.z * s) / l * v);
+  }
+  if (moving || fallV > 0 || now - floorT > 200){
+    floorT = now; const feet = camera.position.y - EYE, want = floorAt(camera.position, feet + STEP) + EYE, d = Math.min(dt, 0.1);
+    if (want >= camera.position.y - 1e-3){ fallV = 0; camera.position.y += (want - camera.position.y) * (1 - Math.exp(-d * 22)); }
+    else { fallV = Math.min(fallV + 18 * d, 12); camera.position.y = Math.max(want, camera.position.y - Math.max(fallV, 2.5) * d); if (camera.position.y <= want + 1e-3) fallV = 0; }
+    markDirty();
+  }
+  if (moving) markDirty();
 });
 
 /* pointeur : glisser pour regarder (marche, 360°), toucher pour sélectionner ou mesurer */
@@ -4241,7 +4315,7 @@ function leave(){ if (AR.session) AR.session.end(); }
 
 /* ---------- API pour l'accueil (script classique) ---------- */
 window.AVApp = {open, openSample, importFiles, leave, refreshGallery:() => { if (activeTab === 'gallery') renderGalleryTab(); }, state:() => ({tool:V.tool, mode:V.mode, style:V.style, name:V.rec?.name, meshes:V.meshes.length, tris:V.tris, size:V.size.toArray(), sel:V.sel ? objLabel(V.sel) : null, ar:AR.supported})};
-window.AVDebug = {V, AR, scene, camera, controls, renderer, batch:on => { BATCH.on = !!on; batchBuild(); }, select, elementOf, pickAt, setTool, setView, setStyle, objLabel, captureView, setSection, measures};
+window.AVDebug = {V, AR, look, applyLook, scene, camera, controls, renderer, batch:on => { BATCH.on = !!on; batchBuild(); }, select, elementOf, pickAt, setTool, setView, setStyle, objLabel, captureView, setSection, measures};
 setTool('orbit'); setTab('tree'); $('#vpEmpty').hidden = false; prompt(TOOL_HINT.orbit);
 window.__apReady = true;
 window.dispatchEvent(new Event('ap:ready'));
