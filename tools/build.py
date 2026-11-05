@@ -66,7 +66,7 @@ def main(argv):
     a, b = load.index('/* export GLB'), load.index('/* ---------- ZIP')
     imports = (S / 'engine' / '00-imports.js').read_text(encoding='utf-8')
     conv = ('<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
-            '<meta name="robots" content="noindex"><title>ARCHIVISION · convertisseur IFC</title></head>'
+            '<meta name="robots" content="noindex"><link rel="icon" href="assets/emblem-64.webp"><link rel="apple-touch-icon" href="assets/icon-192.png"><title>ARCHIVISION · convertisseur IFC</title></head>'
             '<body style="font:14px system-ui,sans-serif;margin:24px;color:#0B1F45"><p id="st">Convertisseur IFC → GLB…</p>\n'
             + rd('parts/importmap.html') + '<script type="module">\n' + imports
             + 'const frame = () => new Promise(r => requestAnimationFrame(() => r()));\n'
