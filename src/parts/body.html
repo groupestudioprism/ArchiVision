@@ -32,6 +32,7 @@
       <div><b>ARCHI<span class="plan">VISION</span></b><small id="projName">Studio Prism · Prism App</small></div></div>
     <nav class="modes" aria-label="Mode de visite"><button data-mode="tour" aria-pressed="true">Visite 3D</button><button data-mode="ar" aria-pressed="false"><span class="m-long">Réalité augmentée</span><span class="m-short">AR</span></button></nav>
     <div class="acts">
+      <button class="ib sp-btn" type="button" data-spectre title="Chercher une commande (Ctrl K)" aria-label="Chercher une commande"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><kbd class="sp-kbd">Ctrl K</kbd></button>
       <button class="ib" id="capBtn" title="Capture (C)" aria-label="Capture"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
       <button class="ib" id="fileBtn" aria-haspopup="true">Fichier</button>
       <button class="ib" id="arPcBtn" title="Déplacer des éléments en direct dans la maquette AR du mobile (code de session)"><span>Voir en AR sur le PC</span></button>
@@ -141,6 +142,7 @@
     <div class="brand" id="homeBrand"><span class="brand-mark"><img src="assets/emblem-64.webp" alt="" width="30" height="25"></span><div><b>ARCHI<span class="plan">VISION</span></b><small>Studio Prism · Prism App</small></div></div>
     <nav class="h-tabs" id="homeTabs" role="tablist"><button type="button" role="tab" data-htab="mine" aria-selected="true">Mes maquettes</button><button type="button" role="tab" data-htab="gallery" aria-selected="false">Galerie</button></nav>
     <div class="h-acts">
+      <button class="ib sp-btn" type="button" data-spectre title="Chercher une commande (Ctrl K)" aria-label="Chercher une commande"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><kbd class="sp-kbd">Ctrl K</kbd></button>
       <button type="button" id="homeLic" class="h-lic" hidden>Découverte</button>
       <a class="h-site" href="https://groupestudioprism.github.io/Studio-Prism/" target="_blank" rel="noopener">Studio Prism ↗</a>
       <button type="button" class="ib" id="homeUser" aria-haspopup="true" aria-label="Mon compte"></button>
@@ -165,6 +167,7 @@
   <div class="h-busy" id="homeBusy" hidden><div class="ap-spin" aria-hidden="true"></div><span></span></div>
   <input type="file" id="homeFile" accept=".glb,.gltf,.ifc,.bin,.png,.jpg,.jpeg,.webp,.ktx2,model/gltf-binary,model/gltf+json" multiple hidden>
 </section>
+<div class="spectre" id="spectre" hidden role="dialog" aria-modal="true" aria-label="Chercher une commande"><div class="sp-box"><div class="sp-in"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="spQ" placeholder="Que voulez-vous faire ? « marche », « filaire », « exporter », « thème »…" autocomplete="off" spellcheck="false" aria-label="Commande"><kbd>Échap</kbd></div><div class="sp-list" id="spList" role="listbox"></div></div></div>
 <div class="menu" id="homeMenu" hidden></div>
 <div class="menu" id="treeMenu" hidden></div>
 <div id="apDlg" hidden role="dialog" aria-modal="true"><div class="dlg-card"></div></div>

@@ -1,0 +1,34 @@
+/* Clic droit et Spectre (Ctrl K) : même mécanique que la gamme Spectra */
+.ctx{position:fixed;z-index:95;min-width:220px;max-width:min(330px,calc(100vw - 16px));max-height:calc(100vh - 16px);overflow:auto;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 36px rgb(7 27 85 / .22);padding:5px;font-size:13px;outline:none;animation:ctxIn .09s ease-out}
+@keyframes ctxIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.ctx{animation:none}}
+.ctx hr{border:0;border-top:1px solid var(--line);margin:4px 6px}
+.ctx-h{padding:6px 10px 4px;font-size:11.5px;font-weight:650;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ctx button{display:flex;align-items:center;gap:8px;width:100%;min-height:30px;padding:5px 10px 5px 6px;border:0;border-radius:8px;background:transparent;color:inherit;text-align:left;font:inherit;cursor:default}
+.ctx button:hover:not(:disabled),.ctx button:focus-visible{background:var(--chip);outline:none}
+.ctx button:focus-visible{box-shadow:inset 0 0 0 2px var(--accent)}
+.ctx button:disabled{opacity:.42}
+.ctx button.danger span{color:var(--danger)}
+.ctx button span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ctx-c{flex:none;width:16px;text-align:center;font-style:normal;font-weight:700;color:var(--accent);font-size:12px}
+.ctx kbd{flex:none;font-size:10.5px;color:var(--mut);background:transparent;border:1px solid var(--line);border-radius:5px;padding:0 5px}
+.ctx-ar{flex:none;color:var(--mut)}
+.sp-btn{display:inline-flex;align-items:center;gap:8px}.sp-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.sp-btn kbd{font-size:10.5px;color:var(--mut);border:1px solid var(--line);border-radius:5px;padding:0 5px;background:transparent}
+@media (max-width:1100px){.sp-btn kbd{display:none}}
+.spectre{position:fixed;inset:0;z-index:90;display:grid;justify-items:center;align-items:start;padding:12vh 16px 16px;background:rgb(7 27 85 / .38);backdrop-filter:blur(3px)}
+.sp-box{width:min(640px,100%);border-radius:18px;background:var(--panel);color:var(--ink);box-shadow:0 24px 60px rgb(7 27 85 / .35);overflow:hidden;position:relative}
+.sp-box::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:linear-gradient(90deg,var(--prism),var(--cyan),var(--turq))}
+.sp-in{display:flex;align-items:center;gap:12px;height:62px;padding:0 16px;border-bottom:1px solid var(--line)}
+.sp-in svg{width:20px;height:20px;fill:none;stroke:var(--mut);stroke-width:2;stroke-linecap:round;flex:none}
+.sp-in input{flex:1;min-width:0;height:100%;border:0;outline:0;background:none;color:inherit;font-size:16.5px}
+.sp-in kbd{font-size:11px;color:var(--mut);border:1px solid var(--line);border-radius:5px;padding:1px 6px}
+.sp-list{max-height:min(52vh,440px);overflow:auto;padding:6px}
+.sp-list>button{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;border:0;border-radius:10px;background:none;color:inherit;text-align:left}
+.sp-list>button span{flex:1;font-size:14px;font-weight:550}
+.sp-list>button small{font-size:12px;color:var(--mut)}
+.sp-list>button kbd{font-size:10.5px;color:var(--mut);border:1px solid var(--line);border-radius:5px;padding:0 5px}
+.sp-list>button.on{background:var(--chip)}
+.sp-list>button.on span::before{content:"";display:inline-block;width:3px;height:14px;border-radius:2px;background:var(--prism);margin-right:10px;vertical-align:-2px}
+.sp-h{margin:6px 12px;font-size:12px;font-weight:600;color:var(--mut)}.sp-h small{display:block;font-weight:400;margin-top:2px;font-size:11.5px}
+.sp-none{margin:14px 12px;color:var(--mut);font-size:13px}

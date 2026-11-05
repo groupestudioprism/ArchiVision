@@ -17,7 +17,7 @@ Usage : python3 tools/build.py
 import pathlib, sys, json
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 S = ROOT / 'src'
-CSS_ORDER = ['app.css', 'splash.css', 'auth.css', 'home.css', 'brand.css', 'vision.css', 'arlive.css']
+CSS_ORDER = ['app.css', 'splash.css', 'auth.css', 'home.css', 'brand.css', 'vision.css', 'arlive.css', 'ctx.css']
 FB = '10.12.2'
 CONFIG = '''const FIREBASE_CONFIG = {
   // Projet Firebase de Studio Prism : le même que le site, ARCHIPLAN et ARCHITRAFIC. Configuration publique par conception (la sécurité repose sur les règles Firestore).

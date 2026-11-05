@@ -220,8 +220,7 @@ async function downloadBlob(filename, blob){
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
 }
 window.AVUI.download = downloadBlob;
-function modelMenu(btn, m){
-  openMenu(btn, [
+const modelItems = m => [
     {label:'Ouvrir la visite 3D', sub:'Orbite, marche, immersion 360°', run:() => openModel(m)},
     {label:'Voir en réalité augmentée', sub:'Poser la maquette sur le sol ou une table', run:() => openModel(m, {ar:true})},
     {label:'Renommer', run:() => askText('Renommer la maquette', 'Nom', m.name, 'Renommer', async v => { await AVStore.patchModel(m.id, {name:v}); await loadHome(); })},
@@ -231,8 +230,13 @@ function modelMenu(btn, m){
     ...(m.kind === 'ifc' ? [{label:'Télécharger l\'IFC d\'origine', run:async () => { if (!fullAccess()) return show('licence', {reason:'export'}); const r = await AVStore.getModel(m.id); if (r?.source) await downloadBlob(safeName(m.name) + '.ifc', r.source); }}] : []),
     '-',
     {label:'Supprimer', sub:'La maquette et ses photos, sur cet appareil', danger:true, run:() => confirmDlg('Supprimer ?', `« ${esc(m.name)} » et ses ${(H.photos || []).filter(p => p.modelId === m.id).length} photo(s) seront effacées de cet appareil. Cette action est définitive.`, 'Supprimer', async () => { await AVStore.deleteModel(m.id); toastA(`Supprimé : ${m.name}`); await loadHome(); })},
-  ]);
-}
+];
+function modelMenu(btn, m){ openMenu(btn, modelItems(m)); }
+Object.assign(window.AVUI, {
+  where:() => ctx.where, models:() => H.models || [], dlgOpen:() => !$a('#apDlg').hidden || !$a('#photoDlg').hidden,
+  openModel:(id, o) => { const m = H.models?.find(x => x.id === id); if (m) openModel(m, o || {}); },
+  modelItems:id => { const m = H.models?.find(x => x.id === id); return m ? modelItems(m).map(i => i === '-' ? i : {t:i.label, run:i.run, danger:i.danger}) : null; },
+});
 
 /* Clics de l'accueil */
 $a('#homeTabs').addEventListener('click', e => { const b = e.target.closest('[data-htab]'); if (!b) return; H.tab = b.dataset.htab; renderHome(); });
