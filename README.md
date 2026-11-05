@@ -26,7 +26,7 @@ Maquettes BIM en **visite 3D** et en **réalité augmentée**, sur téléphone, 
 
 ## Stockage
 
-Les maquettes (GLB, IFC d'origine + GLB converti) et les photos sont gardées **sur l'appareil** (IndexedDB), rangées par compte Studio Prism. Rien n'est envoyé dans le cloud. Bouton « Protéger le stockage » pour demander au navigateur de ne pas les effacer. Les unités sont détectées (mm, cm, m) et modifiables dans l'onglet Infos.
+Les maquettes (GLB, IFC d'origine + GLB converti) et les photos sont gardées **sur l'appareil** (IndexedDB), rangées par compte Studio Prism. Elles sont aussi synchronisées avec le compte (Firestore `avModels` / `avPhotos` + Storage `archivision/{uid}/…`, écoute en temps réel) pour être retrouvées sur les autres appareils. Bouton « Protéger le stockage » pour demander au navigateur de ne pas les effacer. Les unités sont détectées (mm, cm, m) et modifiables dans l'onglet Infos.
 
 ## Licence
 
@@ -55,6 +55,6 @@ La configuration Firebase écrite dans `index.html` est publique par conception 
 ## Limites connues
 
 - Réalité augmentée non testée sur un vrai téléphone (voir l'état en tête).
-- Pas de synchronisation entre appareils : une maquette importée sur l'ordinateur doit être réimportée sur le téléphone.
+- Synchronisation entre appareils : nécessite la publication des règles `docs/firestore-avsync.rules` (Firestore) et `docs/storage-avsync.rules` (Storage) ; sans elles, l'app reste utilisable sur l'appareil et affiche « Synchro : à vérifier ».
 - IFC lourds (plus de ~100 Mo) : la conversion se fait dans le navigateur et peut être lente sur téléphone.
 - Les messages « expected REF » de web-ifc sur les IFC d'ARCHIPLAN (OwnerHistory vide, autorisé en IFC4) sont masqués ; la maquette se lit correctement.
