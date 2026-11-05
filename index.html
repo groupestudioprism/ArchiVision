@@ -4344,7 +4344,12 @@ async function open(id, opts = {}){
 }
 async function openSample(opts = {}){
   if (AR.session) AR.session.end();
-  if (V.rec?.id !== 'sample'){ setModel(buildSample(), {id:'sample', name:'Maison d\'exemple', kind:'sample', createdAt:0}); }
+  if (V.rec?.id !== 'sample'){
+    // maison d'exemple exportée d'ARCHIPLAN (tools/maison-exemple.py → assets/maison-exemple.glb) ; sinon celle construite par le code
+    let root = null;
+    try { const r = await fetch('assets/maison-exemple.glb'); if (r.ok){ const buf = await r.arrayBuffer(); if (new TextDecoder().decode(buf.slice(0, 4)) === 'glTF') root = await parseGLB(buf); } } catch(e){ root = null; }
+    setModel(root || buildSample(), {id:'sample', name:root?.userData?.archiplan?.projet || 'Maison d\'exemple', kind:'sample', createdAt:0});
+  }
   window.AVUI?.hideHome(); afterOpen(opts);
 }
 function afterOpen(opts){
