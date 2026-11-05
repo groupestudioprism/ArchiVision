@@ -42,14 +42,17 @@ const AVStore = (() => {
     newId:id,
     async listModels(uid){ const all = await byUid('models', uid); return all.map(({glb, source, ...m}) => ({...m, glbSize:glb?.size || 0, sourceSize:source?.size || 0})); },
     getModel:(mid) => tx('models', 'readonly', s => req(s.get(mid))),
-    putModel:(m) => tx('models', 'readwrite', s => req(s.put(m))),
-    async patchModel(mid, patch){ const m = await this.getModel(mid); if (!m) return; Object.assign(m, patch); await this.putModel(m); return m; },
-    async deleteModel(mid){ await tx('models', 'readwrite', s => req(s.delete(mid))); const ps = await tx('photos', 'readonly', s => req(s.index('modelId').getAll(mid))); await tx('photos', 'readwrite', s => Promise.all(ps.map(p => req(s.delete(p.id))))); },
+    // opts.sync : écriture venant de la synchronisation (garde updatedAt / syncedAt). Sinon : updatedAt = maintenant, envoi au serveur.
+    async putModel(m, opts){ if (!opts?.sync) m.updatedAt = Date.now(); await tx('models', 'readwrite', s => req(s.put(m))); if (!opts?.sync) window.AVSync?.kick(); },
+    async patchModel(mid, patch){ const m = await this.getModel(mid); if (!m) return; Object.assign(m, patch); if (Object.keys(patch).every(k => k === 'openedAt')){ await tx('models', 'readwrite', s => req(s.put(m))); return m; } await this.putModel(m); return m; },
+    async markSynced(kind, id, at){ const st = kind === 'model' ? 'models' : 'photos'; await tx(st, 'readwrite', async s => { const r = await req(s.get(id)); if (r){ r.syncedAt = at; r.updatedAt = Math.max(r.updatedAt || 0, at); await req(s.put(r)); } }); },
+    async deleteModel(mid, opts){ await tx('models', 'readwrite', s => req(s.delete(mid))); const ps = await tx('photos', 'readonly', s => req(s.index('modelId').getAll(mid))); await tx('photos', 'readwrite', s => Promise.all(ps.map(p => req(s.delete(p.id)))));
+      if (!opts?.silent){ ps.forEach(p => window.AVSync?.tomb('photo', p.id)); window.AVSync?.tomb('model', mid); } },
     listPhotos:(uid) => byUid('photos', uid),
     async listModelPhotos(uid, mid){ return (await tx('photos', 'readonly', s => req(s.index('modelId').getAll(mid)))).filter(p => p.uid === uid); },
     getPhoto:(pid) => tx('photos', 'readonly', s => req(s.get(pid))),
-    putPhoto:(p) => tx('photos', 'readwrite', s => req(s.put(p))),
-    deletePhoto:(pid) => tx('photos', 'readwrite', s => req(s.delete(pid))),
+    async putPhoto(p, opts){ if (!opts?.sync) p.updatedAt = Date.now(); await tx('photos', 'readwrite', s => req(s.put(p))); if (!opts?.sync) window.AVSync?.kick(); },
+    async deletePhoto(pid, opts){ await tx('photos', 'readwrite', s => req(s.delete(pid))); if (!opts?.silent) window.AVSync?.tomb('photo', pid); },
     async estimate(){ try { const e = await navigator.storage?.estimate?.(); return e || null; } catch(e){ return null; } },
     async persist(){ try { if (await navigator.storage?.persisted?.()) return true; return !!(await navigator.storage?.persist?.()); } catch(e){ return false; } },
   };
@@ -89,7 +92,7 @@ function showHome(){
   ctx.where = 'home'; const h = $a('#home'); h.hidden = false; $a('#app').inert = true;
   const hu = $a('#homeUser'); hu.textContent = initials(); hu.title = fullName();
   const hour = new Date().getHours(); $a('#homeHello').textContent = `${hour < 18 && hour > 4 ? 'Bonjour' : 'Bonsoir'} ${me?.firstName || ''}`.trim();
-  renderHome(); loadHome();
+  renderHome(); loadHome(); AVSync.start();
 }
 async function loadHome(){
   if (!me) return;
@@ -113,9 +116,12 @@ function renderQuota(){
   q.innerHTML = `<div class="q-h"><span>Sur cet appareil</span><b class="q-plan ${fullAccess() ? 'pro' : 'free'}">${esc(lab)}</b></div>
     <div class="q-num"><b>${used < 1e6 ? kb(used) : mb(used)}</b>${cap ? ` / ${cap > 5e9 ? Math.round(cap / 1e9) + ' Go' : mb(cap)} disponibles` : ''}</div>
     <div class="q-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(pct)}"><i style="width:${Math.max(pct, used ? 1 : 0).toFixed(1)}%" class="${pct > 90 ? 'full' : pct > 70 ? 'mid' : ''}"></i></div>
-    <dl class="q-dl"><dt>Maquettes</dt><dd>${H.models?.length ?? '—'}</dd><dt>Photos</dt><dd>${H.photos?.length ?? '—'}</dd><dt>Stockage</dt><dd>${H.persisted ? 'protégé' : 'standard'}</dd></dl>
-    ${H.persisted ? '' : `<button type="button" class="q-up" data-hact="persist">Protéger le stockage</button>`}`;
+    <dl class="q-dl"><dt>Maquettes</dt><dd>${H.models?.length ?? '—'}</dd><dt>Photos</dt><dd>${H.photos?.length ?? '—'}</dd><dt>Stockage</dt><dd>${H.persisted ? 'protégé' : 'standard'}</dd><dt>Synchro</dt><dd class="q-sync ${AVSync.S.state}">${syncLabel()}</dd></dl>
+    ${H.persisted ? '' : `<button type="button" class="q-up" data-hact="persist">Protéger le stockage</button>`}
+    ${Auth.mode === 'firebase' ? `<button type="button" class="q-up" data-hact="sync">Synchroniser maintenant</button>${AVSync.S.state === 'error' ? `<p class="hint" id="homeSyncNote">${esc(AVSync.S.msg)}</p>` : ''}` : ''}`;
 }
+const syncLabel = () => Auth.mode !== 'firebase' ? 'sur cet appareil (mode démo)' : ({off:'inactive', busy:'en cours…', ok:'à jour', error:'à vérifier'})[AVSync.S.state] || '';
+window.AVUI.syncChanged = () => { if (ctx.where === 'home') { renderQuota(); const n = $a('#homeSyncNote'); if (n) { n.hidden = AVSync.S.state !== 'error'; n.textContent = AVSync.S.msg; } } };
 function renderOffer(){
   const el = $a('#homeOffer'); if (!el) return;
   const hide = fullAccess() || access.level === 'pending' || !me || store.get('av.offerHide.' + me.uid);
@@ -148,7 +154,7 @@ function renderHome(){
   if (H.tab === 'mine'){
     const ms = H.models || [];
     body.innerHTML = ms.length ? `<h2 class="hsec">Maquettes récentes</h2><div class="hgrid">${ms.map(cardHtml).join('')}</div>
-      <p class="hint h-note">Les maquettes sont gardées sur cet appareil, pour votre compte. Les fichiers IFC sont convertis une seule fois, à l'import.</p>`
+      <p class="hint h-note">Les maquettes sont gardées sur cet appareil et synchronisées avec votre compte (visibles sur vos autres appareils). Les fichiers IFC sont convertis une seule fois, à l'import.</p>`
       : `<div class="hempty"><div class="hic">${ICON.model}</div><h3>Aucune maquette trouvée.</h3><p>Importez un fichier GLB, glTF ou IFC pour commencer (export « Archi Vision » d'ARCHIPLAN, Revit, ArchiCAD, SketchUp…), ou ouvrez la maquette d'exemple.</p>
         <div class="hempty-a"><button type="button" class="ap-btn" data-hact="import">Importer une maquette</button><button type="button" class="ap-btn alt" data-hact="sample">Maquette d'exemple</button></div></div>`;
   } else {
@@ -250,6 +256,7 @@ $a('#home').addEventListener('click', async e => {
   if (a === 'reload') loadHome();
   else if (a === 'import'){ if (!fullAccess()) return show('licence', {reason:'export'}); $a('#homeFile').click(); }
   else if (a === 'sample') openSample();
+  else if (a === 'sync'){ AVSync.start(); AVSync.now(); }
   else if (a === 'key') show('licence');
   else if (a === 'offer-hide'){ store.set('av.offerHide.' + me.uid, true); renderOffer(); }
   else if (a === 'persist'){ const ok = await AVStore.persist(); toastA(ok ? 'Stockage protégé : le navigateur ne l\'effacera pas pour faire de la place.' : 'Le navigateur a refusé. Installez l\'app sur l\'écran d\'accueil pour protéger le stockage.'); loadHome(); }

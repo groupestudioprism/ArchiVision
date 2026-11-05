@@ -765,7 +765,7 @@ function enterApp(msg){
 }
 async function signOutAll(){
   try { if (Save.pending()) await withTimeout(Save.flush(true), 8000); } catch(e){}
-  Save.end(); ctx.where = ''; H.mine = H.shared = null; H.folder = ''; H.tab = 'mine'; $a('#home').hidden = true; window.APCloudActive = false;
+  Save.end(); try { AVSync.stop(); } catch(e){} ctx.where = ''; H.mine = H.shared = null; H.folder = ''; H.tab = 'mine'; $a('#home').hidden = true; window.APCloudActive = false;
   ctx.email = me?.email || ctx.email; try { await Auth.signOut(); } catch(e){}
   me = null; ctx.discShown = false; ctx.libFor = ''; try { window.APModel?.setUserLib({}); } catch(e){} const ub = $a('#userBtn'); if (ub) ub.hidden = true; $a('#userMenu').hidden = true;
   publishAccess({level:'pending'});

@@ -154,4 +154,4 @@ async def main():
         check(not [e for e in errs if e.startswith(('PAGE', 'MOBILE'))], 'aucune exception JavaScript')
         await b.close()
     print(f'\n{len(fails)} échec(s)'); sys.exit(1 if fails else 0)
-asyncio.run(main())
+if __name__ == "__main__": asyncio.run(main())

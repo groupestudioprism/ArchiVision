@@ -5,7 +5,7 @@
   src/css/*.css                  styles (ordre : CSS_ORDER) : charte Studio Prism d'ARCHIPLAN + couche ARCHIVISION
   src/parts/body.html            structure de la page (intro, compte, visite, réalité augmentée, accueil)
   src/js/intro.js                animation d'ouverture (insérée juste après l'écran #splash, pour démarrer avant le premier affichage)
-  src/js/auth.js + vision-home.js + auth-end.js   compte Studio Prism, accueil « Mes maquettes », galerie (script classique, une seule IIFE)
+  src/js/auth.js + vision-home.js + vision-sync.js + auth-end.js   compte Studio Prism, accueil « Mes maquettes », galerie (script classique, une seule IIFE)
   src/parts/importmap.html       Three.js r160 (jsDelivr)
   src/engine/*.js                moteur 3D + AR (module ES, fichiers concaténés dans l'ordre alphabétique)
 
@@ -32,7 +32,7 @@ def rd(p): return (S / p).read_text(encoding='utf-8')
 def assemble():
     engine = ''.join(f'/* ==== {f.name} ==== */\n' + f.read_text(encoding='utf-8') + '\n' for f in sorted((S / 'engine').glob('*.js')))
     return (rd('parts/head.html') + '<style>\n' + ''.join(rd('css/' + c) for c in CSS_ORDER) + '</style>\n' + rd('parts/body.html').replace('<!--SP-INTRO-->', '<script>\n' + rd('js/intro.js') + '</script>')
-            + '<script>\n' + rd('js/auth.js') + rd('js/vision-home.js') + rd('js/auth-end.js') + '</script>\n'
+            + '<script>\n' + rd('js/auth.js') + rd('js/vision-home.js') + rd('js/vision-sync.js') + rd('js/auth-end.js') + '</script>\n'
             + rd('parts/importmap.html') + '<script type="module">\n' + engine + '</script>\n')
 HEAD = ('<!doctype html><html lang="fr"><head><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">'

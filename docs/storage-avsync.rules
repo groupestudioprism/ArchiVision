@@ -1,0 +1,8 @@
+// A AJOUTER aux règles Firebase Storage (Studio-Prism/storage.rules), à l'intérieur de « match /b/{bucket}/o { ... } »,
+// AVANT la règle finale « match /{allPaths=**} » (refus), puis PUBLIER (firebase deploy --only storage).
+// Fichiers ARCHIVISION d'un compte : archivision/{uid}/models/{id}/model.glb | source.bin, archivision/{uid}/photos/{id}.
+match /archivision/{uid}/{allPaths=**} {
+  allow read, delete: if request.auth != null && request.auth.uid == uid;
+  allow create, update: if request.auth != null && request.auth.uid == uid
+                        && request.resource.size > 0 && request.resource.size <= 524288000;   // 500 Mo par fichier
+}
