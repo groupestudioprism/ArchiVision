@@ -55,6 +55,6 @@ La configuration Firebase écrite dans `index.html` est publique par conception 
 ## Limites connues
 
 - Réalité augmentée non testée sur un vrai téléphone (voir l'état en tête).
-- Synchronisation entre appareils : nécessite la publication des règles `docs/firestore-avsync.rules` (Firestore) et `docs/storage-avsync.rules` (Storage) ; sans elles, l'app reste utilisable sur l'appareil et affiche « Synchro : à vérifier ».
+- Synchronisation entre appareils : nécessite la publication des règles Firestore et Storage de Studio Prism (source unique : dépôt Studio-Prism, `firebase/firestore.rules` et `firebase/storage.rules`) ; sans elles, l'app reste utilisable sur l'appareil et affiche « Synchro : à vérifier ».
 - IFC lourds (plus de ~100 Mo) : la conversion se fait dans le navigateur et peut être lente sur téléphone.
 - Les messages « expected REF » de web-ifc sur les IFC d'ARCHIPLAN (OwnerHistory vide, autorisé en IFC4) sont masqués ; la maquette se lit correctement.

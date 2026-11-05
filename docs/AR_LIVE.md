@@ -42,7 +42,7 @@ Les deux côtés doivent être **connectés** à Firebase Auth (compte Studio Pr
 3. **Fin** : l'hôte passe `state` à `closed` et remet les éléments à leur place d'origine. Le code expire de toute façon à `expiresAt` (lecture et écriture refusées ensuite).
 
 ## Sécurité
-Règles dans `docs/firestore-arlive.rules` (à ajouter aux règles Firestore du projet puis publier) : accès réservé aux comptes connectés ; lecture document par document (`get`, aucun `list` : on ne peut pas énumérer les codes) ; code de 6 caractères (32^6 ≈ 10^9 combinaisons) valable 2 h ; écriture limitée à `moves` avec champs et types contrôlés (position seule) ; seul l'hôte clôt ou supprime la session. Activer si possible la suppression automatique (TTL) sur `arLive.expiresAt`.
+Règles dans la source unique de Studio Prism (dépôt Studio-Prism, `firebase/rules/12-archivision.rules`, assemblé dans `firebase/firestore.rules`) : accès réservé aux comptes connectés ; lecture document par document (`get`, aucun `list` : on ne peut pas énumérer les codes) ; code de 6 caractères (32^6 ≈ 10^9 combinaisons) valable 2 h ; écriture limitée à `moves` avec champs et types contrôlés (position seule) ; seul l'hôte clôt ou supprime la session. Activer si possible la suppression automatique (TTL) sur `arLive.expiresAt`.
 
 ## Mode démo (tests)
 Sans Firebase, le site utilise `BroadcastChannel` + `localStorage` : mêmes messages, entre deux onglets du même navigateur (`tests/arlive.py`).
