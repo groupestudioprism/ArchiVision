@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.studioprism.archivision",
+      "sha256_cert_fingerprints": ["AC:39:B7:38:6F:21:33:49:DE:6A:DF:77:85:B8:9E:4B:68:E4:27:45:47:3C:B9:DF:D1:42:F6:05:9B:00:DE:6D"]
+    }
+  }
+]
