@@ -51,15 +51,46 @@ MANIFEST = {
     'background_color': '#F3F6F9', 'theme_color': '#0B1F45', 'description': 'Maquettes BIM en visite 3D et en réalité augmentée.',
     'icons': [{'src': 'assets/icon-192.png', 'sizes': '192x192', 'type': 'image/png'}, {'src': 'assets/icon-512.png', 'sizes': '512x512', 'type': 'image/png'}],
 }
+# ---- référencement et informations légales (ajouté le 19/11/2026, voir README) ----
+SEO_URL = 'https://archivision.studio-prism.com/'
+SEO_TITLE = 'ARCHIVISION — Maquettes BIM en 3D et réalité augmentée · Studio Prism'
+SEO_IMG = 'assets/icon-512.png'
+SEO_CAT = 'DesignApplication'
+SP_LEGAL = 'https://studio-prism.com/'
+def _spseo(live):
+    import json as _j, re as _re, html as _h
+    m = _re.search(r'<meta name="description" content="([^"]*)"', live); desc = _h.unescape(m.group(1)) if m else ''
+    e = lambda s: _h.escape(s, quote=True)
+    ld = {'@context': 'https://schema.org', '@type': 'SoftwareApplication', 'name': SEO_TITLE.split(' — ')[0], 'url': SEO_URL, 'description': desc,
+          'applicationCategory': SEO_CAT, 'operatingSystem': 'Web (navigateur) : Windows, macOS, Linux, Android, iOS', 'inLanguage': 'fr-FR',
+          'image': SEO_URL + SEO_IMG, 'offers': {'@type': 'Offer', 'price': '0', 'priceCurrency': 'EUR'},
+          'publisher': {'@type': 'Organization', 'name': 'Studio Prism', 'url': SP_LEGAL}}
+    tags = (f'<link rel="canonical" href="{SEO_URL}"><meta property="og:type" content="website"><meta property="og:site_name" content="Studio Prism">'
+            f'<meta property="og:title" content="{e(SEO_TITLE)}"><meta property="og:description" content="{e(desc)}"><meta property="og:url" content="{SEO_URL}">'
+            f'<meta property="og:image" content="{SEO_URL}{SEO_IMG}"><meta property="og:locale" content="fr_FR"><meta name="twitter:card" content="summary">'
+            '<script type="application/ld+json">' + _j.dumps(ld, ensure_ascii=False).replace('</', '<\\/') + '</script>')
+    live = _re.sub(r'<title>[^<]*</title>', '<title>' + e(SEO_TITLE) + '</title>', live, count=1)
+    live = live.replace('</head>', tags + '</head>', 1)
+    nav = ('<nav class="sp-legal" aria-label="Informations légales"><a href="' + SP_LEGAL + 'mentions-legales" target="_blank" rel="noopener">Mentions légales</a>'
+           '<a href="' + SP_LEGAL + 'confidentialite" target="_blank" rel="noopener">Confidentialité</a><a href="' + SP_LEGAL + 'conditions-utilisation" target="_blank" rel="noopener">CGU</a>'
+           '<a href="' + SP_LEGAL + 'cgv" target="_blank" rel="noopener">CGV</a><a href="' + SP_LEGAL + 'cookies" target="_blank" rel="noopener">Cookies</a></nav>'
+           '<style>.sp-legal{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(8px + env(safe-area-inset-bottom,0px));z-index:40;display:flex;flex-wrap:wrap;justify-content:center;gap:2px 14px;'
+           'width:max-content;max-width:calc(100% - 16px);box-sizing:border-box;padding:4px 14px;border-radius:999px;background:rgba(255,255,255,.9);color:#3a4256;box-shadow:0 1px 4px rgba(0,0,0,.12);font:12px/1.5 Inter,system-ui,sans-serif}.sp-legal a{color:inherit;opacity:.85;text-decoration:none}.sp-legal a:hover,.sp-legal a:focus-visible{opacity:1;text-decoration:underline}</style>'
+           '<script>(function(){var a=document.getElementById("auth"),n=document.querySelector(".sp-legal");if(a&&n)a.appendChild(n);else if(n)n.remove()})()</script>')
+    i = live.rfind('</body>')
+    return live[:i] + nav + live[i:] if i > 0 else live + nav
+def _spdemo(s):
+    return s.replace('<meta charset="utf-8">', '<meta charset="utf-8"><meta name="robots" content="noindex,follow">', 1) if '<meta charset="utf-8">' in s[:300] else '<meta name="robots" content="noindex,follow">' + s
+
 def main(argv):
     demo = assemble()
     assert demo.count('const FIREBASE_CONFIG = null;') == 1 and f"FIREBASE_VERSION = '{FB}'" in demo
     (ROOT / 'dist').mkdir(exist_ok=True)
     lnk = ROOT / 'dist' / 'assets'
     if not lnk.exists(): lnk.symlink_to('../assets')
-    (ROOT / 'dist' / 'archivision-demo.html').write_text(HEAD + demo + '</body></html>\n', encoding='utf-8')
+    (ROOT / 'dist' / 'archivision-demo.html').write_text(_spdemo(HEAD + demo + '</body></html>\n'), encoding='utf-8')
     live = HEAD + demo.replace('const FIREBASE_CONFIG = null;', CONFIG).replace('<title>ARCHIVISION</title>', '<title>ARCHIVISION · Studio Prism</title>', 1) + '</body></html>\n'
-    (ROOT / 'index.html').write_text(live, encoding='utf-8')
+    (ROOT / 'index.html').write_text(_spseo(live), encoding='utf-8')
     (ROOT / 'manifest.webmanifest').write_text(json.dumps(MANIFEST, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     # convertisseur IFC → GLB de l'application Android (WebView invisible) : même code IFC que le site
     load = (S / 'engine' / '30-load.js').read_text(encoding='utf-8')
